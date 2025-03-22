@@ -8,7 +8,7 @@
 🕒 16:30 - 19:15  
 🏢 Social Sciences Building, Room 22205  
 📝 [Course Materials](https://github.com/ml4econ/lecture-notes-2025)  
-💬 [Discussion Forum](https://moodle2.cs.huji.ac.il/nu24/mod/forum/view.php?id=286095)
+💬 [Discussion Forum](https://moodle.huji.ac.il/2024-25/course/view.php?id=2170)
 
 ---
 
@@ -53,11 +53,11 @@ Students are expected to:
 
 ### Part I: Machine Learning
 
-1. Course Overview  
+1. Course Overview: In this lecture, we will introduce the course, its objectives, and the tools we will use. 
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/01-overview/01-overview.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/01-overview/01-overview.pdf)
 
-2. Basic Machine Learning Concepts  
+2. Basic Machine Learning Concepts: In this lecture, we will cover the basic concepts of machine learning, including supervised and unsupervised learning, model evaluation, and cross-validation. 
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/02-basic-ml-concepts/02-basic-ml-concepts.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/02-basic-ml-concepts/02-basic-ml-concepts.pdf)
 
