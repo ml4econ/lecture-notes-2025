@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>02 - Basic Machine Learning Concepts</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Itamar Caspi" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style/middlebury.css" type="text/css" />
+    <link rel="stylesheet" href="style/middlebury-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 02 - Basic Machine Learning Concepts
+]
+.subtitle[
+## ml4econ, HUJI 2025
+]
+.author[
+### Itamar Caspi
+]
+.date[
+### March 23, 2025 (updated: 2025-03-22)
+]
+
+---
+
+
+
+
+# Replicating this Presentation
+
+R packages used to produce this presentation:
+
+
+``` r
+library(tidyverse)    # for data manipulation, exploration, and visualization using ggplot2, dplyr, etc.
+library(tidymodels)   # for machine learning modeling using a consistent framework
+library(RefManageR)   # for managing and formatting bibliographic references
+library(truncnorm)    # for generating random numbers from truncated normal distributions
+library(dagitty)      # for creating and analyzing directed acyclic graphs (DAGs) for causal inference
+library(knitr)        # for dynamic report generation and embedding graphics
+```
+
+
+
+
+
+
+
+
+---
+# First Things First: "Big Data"
+
+&lt;midd-blockquote&gt;"_A billion years ago modern homo sapiens emerged. A billion minutes ago, Christianity began. A billion seconds ago, the IBM PC was released.
+A billion Google searches ago ... was this morning._"  
+.right[Hal Varian (2013)]&lt;/midd-blockquote&gt;
+
+Today, we are at **~9 billion** Google searches per day!
+
+The 4 Vs of big data:  
+
++ Volume - Scale of data.  
++ Velocity - Analysis of streaming data.  
++ Variety - Different forms of data.  
++ Veracity - Uncertainty of data.  
+
+---
+
+# "Data Science"
+
+&lt;img src="figs/venn.jpg" width="50%" style="display: block; margin: auto;" /&gt;
+[*] Hacking `\(\approx\)` coding
+
+
+---
+# Outline
+
+1. [What is ML?](#concepts)  
+
+2. [The problem of overfitting](#overfitting)  
+
+3. [Too complext? Regularize!](#regularization)  
+
+4. [ML and Econometrics](#economics)  
+
+
+
+---
+class: title-slide-section-blue, center, middle
+name: concepts
+
+# What is ML?
+
+
+---
+# So, what is ML?
+
+A concise definition by [Athey (2018)](#bib-athey2018the):
+
+&lt;midd-blockquote&gt;
+"...[M]achine learning is a field
+that develops algorithms designed to be applied to datasets, with the main areas of focus being prediction (regression), classification, and clustering or grouping tasks."
+&lt;/midd-blockquote&gt;
+
+Specifically, there are three broad classifications of ML problems:  
+
+  + supervised learning.  
+  + unsupervised learning.  
+  + reinforcement learning.  
+  
+
+&gt; Most of the hype you hear about in recent years relates to supervised learning, and in particular, deep learning.
+
+
+---
+
+
+&lt;img src="figs/mltypes.png" width="80%" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+Source: [https://wordstream-files-prod.s3.amazonaws.com/s3fs-public/machine-learning.png](https://wordstream-files-prod.s3.amazonaws.com/s3fs-public/machine-learning.png)
+
+
+
+---
+# An Aside: ML and Artificial Intelligence (AI)
+
+
+&lt;img src="figs/DL-ML-AI.png" width="70%" style="display: block; margin: auto;" /&gt;
+
+
+???
+
+Source: [https://www.magnetic.com/blog/explaining-ai-machine-learning-vs-deep-learning-post/](https://www.magnetic.com/blog/explaining-ai-machine-learning-vs-deep-learning-post/)
+
+
+---
+# Unsupervised Learning
+
+In _unsupervised_ learning, the goal is to divide high-dimensional data into clusters that are __similar__ in their set of features `\((X)\)`.
+
+Examples of algorithms:  
+  - principal component analysis
+  - `\(k\)`-means clustering
+  - Latent Dirichlet Allocation (LDA) 
+  
+Applications:  
+  - image recognition
+  - cluster analysis
+  - topic modelling
+
+
+---
+# Example: Clustering OECD Inflation Rates
+
+&lt;img src="figs/clustInflationCropped.jpg" width="80%" style="display: block; margin: auto;" /&gt;
+
+.footnote[_Source_: [Baudot-Trajtenberg and Caspi (2018)](https://www.bis.org/publ/bppdf/bispap100_l.pdf).]
+
+
+---
+# Reinforcement Learning (RL)
+ 
+A definition by [Sutton and Barto (2018)](#bib-sutton2018rli):
+
+&lt;midd-blockquote&gt;
+_"Reinforcement learning is learning what to do—how to map situations to actions—so as to maximize a numerical reward signal. The learner is not told which actions to take, but instead must discover which actions yield the most reward by trying them."_
+&lt;/midd-blockquote&gt;
+
+
+Prominent examples:
+
+- Game AI (e.g., chess, AlphaGo).
+
+- Robotics (e.g., autonomous cars).
+
+- LLMs (e.g., ChatGPT)
+
+---
+# Supervised Learning
+
+Consider the following data generating process (DGP):
+
+`$$Y=f(\boldsymbol{X})+\epsilon$$`
+where `\(Y\)` is the outcome variable, `\(\boldsymbol{X}\)` is a `\(1\times p\)`-dimensional vector of predictor variables (features), `\(f(⋅)\)` is the unknown true relationship we aim to estimate, and `\(\epsilon\)` is the irreducible error.  
+- __Training set__ ("in-sample"): `\(\{(x_i,y_i)\}_{i=1}^{n}\)` - used to fit the model
+- __Test set__ ("out-of-sample"): `\(\{(x_i,y_i)\}_{i=n+1}^{m}\)` - used to evaluate model performance
+&lt;img src="figs/train_test.png" width="50%" style="display: block; margin: auto;" /&gt;
+&lt;midd-blockquote&gt;
+Key assumptions: (1) independent observations; (2) consistent data generating process across both training and test sets.
+&lt;/midd-blockquote&gt;
+
+---
+
+# The Goal of Supervised Learning
+
+The objective is to learn a function `\(\hat{f}(X)\)` from a labeled training set (where both `\(X\)` and `\(Y\)` are known) that accurately predicts outcomes on unseen data (where only `\(X\)` is known).
+
+Specifically, we aim to:
+- Minimize the generalization error (error on unseen data)
+- Create a model that captures the true underlying relationship `\(f(X)\)`, not just memorize training examples
+
+
+---
+# Example: Spam Detection
+
+&lt;img src="figs/spam.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+In this case:
+- `\(Y \in\{s p a m, h a m\}\)` (a binary classification problem)
+- `\(X\)` represents the email's features (text, sender information, timestamp, location, etc.)
+- The model learns patterns from labeled emails to identify spam in new, unseen emails
+
+The challenge lies in identifying features that consistently distinguish spam across both seen and unseen emails, while avoiding overfitting to peculiarities in the training data.
+---
+
+# Traditional vs. Modern Approach to Supervised Learning
+
+&lt;iframe width="100%" height="400" src="https://www.youtube.com/embed/xl3yQBhI6vY?start=405" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen&gt;&lt;/iframe&gt;
+
+---
+# Traditional vs. Modern Approach to Supervised Learning
+
+#### Traditional Approach: Expert-Defined Rules
+- Human experts manually create rules based on domain knowledge
+ - Example: For spam detection, create dictionaries of suspicious terms
+ - Rules: "If email contains 'Nigerian Prince' AND unknown sender, classify as spam"
+- Limitations: Labor-intensive, difficult to adapt, struggles with complex cases
+
+#### Modern Approach: Data-Driven Learning
+- System automatically discovers patterns from labeled examples
+ - Underlying rules emerge from the data itself
+ - Example: Feed algorithms thousands of labeled emails to identify patterns
+- Advantages: Discovers non-obvious relationships, adapts to new patterns, 
+ scales to handle complexity beyond human comprehension
+
+
+---
+# Real-World Applications of Machine Learning
+
+| Task                    | Outcome (Y)                 | Features (X)                                 | Type                |
+|-------------------------|-----------------------------|--------------------------------------------|---------------------|
+| Credit scoring          | Probability of default      | Loan history, payment records, income      | Regression          |
+| Fraud detection         | Fraud / no fraud            | Transaction patterns, timing, amounts      | Classification      |
+| Sentiment analysis      | Positive / negative / neutral | Text, review content, linguistic features  | Classification      |
+| Image classification    | Object categories           | Pixel values, image features               | Classification      |
+| Overdraft prediction    | Yes / no                    | Account history, transaction patterns      | Classification      |
+| Customer churn          | Will churn / won't churn    | Usage patterns, demographics, history      | Classification      |
+| Disease diagnosis       | Disease presence/type       | Medical images, patient data, symptoms     | Classification      |
+
+---
+# Example: Anticipatory Package Shipping
+
+Different applications involve different types of data structures, problem formulations, and evaluation metrics, each requiring specialized modeling approaches.
+
+&gt; Amazon's ["Anticipatory Package Shipping"](https://pdfpiw.uspto.gov/.piw?docid=08615473&amp;SectionNum=1&amp;IDKey=28097F792F1E&amp;HomeUrl=http://patft.uspto.gov/netacgi/nph-Parser?Sect1=PTO2%2526Sect2=HITOFF%2526p=1%2526u%2025252Fnetahtml%2025252FPTO%20=%25%25%25%25%2025252Fsearch%20bool.html%202526r-2526f%20=%20G%20=%201%25%20=%2050%25%202526l%25%202526d%25%20AND%202526co1%20=%20=%20=%20PTXT%202526s1%25%25%25%20252522anticipatory%20252Bpackage%25%20=%25%20252522%25%202526OS%20252522anticipatory%20252Bpackage%25%25%20252%20522%25%202526RS%20252522anticipatory%25%20=%25%20252522%25%20252Bpackage) patent (December 2013): Imagine Amazon's algorithms reaching such levels of accuracy, casing it to change its business model from shopping-then-shipping to shipping-then-shopping!
+
+???
+
+A fascinating discussion on Amazon's shipping-then-shopping business model appears in the book ["Prediction Machines: The Simple Economics of Artificial Intelligence"](https://books.google.com/books/about/Prediction_Machines.html?id=wJY4DwAAQBAJ) ([Agrawal, Gans, and Goldfarb, 2018](#bib-agrawal2018prediction)).
+
+---
+# Supervised Learning Algorithms: A Historical Perspective
+
+Many core machine learning algorithms have surprisingly deep historical roots:
+- Linear and logistic regression (1805, 1958)
+  - The foundations of statistical modeling predating modern computing
+- K-Nearest neighbors (1967)
+  - An intuitive approach formalized in the era of early computing
+- Decision trees (CART, ID3, 1984)
+  - Emerged as computing power allowed more complex rule-based systems
+- Neural networks (conceptualized 1940s, major advances 1986, 1990s)
+  - Theoretical foundations existed decades before practical implementation
+- Support vector machines (1990s)
+  - Computational optimization applied to classification problems
+- Ensemble methods (bagging 1996, Random Forests 2001, boosting 1990s)
+  - Combining multiple models for improved performance
+
+Most foundational algorithms were developed well before the recent "AI revolution," suggesting other factors must explain the current surge in ML capabilities.
+
+---
+# So, Why Now?
+
+- ML methods have always been data-hungry and computationally expensive. The recent boom is driven by:
+  - Exponential growth in available data (internet, IoT, digitization of services)
+  - Dramatic advances in computing power (GPUs, cloud infrastructure)
+  - Improved software and frameworks that democratize implementation
+  
+$$ \text{big data} + \text{computational advancements} = \text{the rise of ML}$$
+
+- As Diebold notes:
+&lt;midd-blockquote&gt; "_[S]upervised learning [...] may involve high dimensions, non-linearities, binary variables, etc., but at the end of the day it's still just regression._" .right[&amp;mdash; [__Francis X. Diebold__](https://fxdiebold.blogspot.com/2018/06/machines-learning-finance.html)]&lt;/midd-blockqoute&gt;
+
+The core mathematical principles haven't changed significantly—what's changed is our ability to implement them at unprecedented scales.
+
+
+&lt;img src="figs/matrix.jpeg" width="25%" style="display: block; margin: auto;" /&gt;
+
+---
+# Wait, is ML Just Glorified Statistics?
+
+.pull-left[
+&lt;img src="figs/frames.jpg" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+.pull-right[
+The "two cultures" ([Breiman, 2001](#bib-breiman2001statistical)):
+
+**Statistics**: Assumes a data generating process and focuses on parameter estimation, inference, and understanding underlying mechanisms with strong emphasis on model assumptions and interpretability.
+
+**Machine learning**: Treats the data mechanism as unknown and complex, focusing primarily on prediction accuracy and generalization performance with less concern for interpretable structures or theoretical guarantees.
+]
+
+
+???
+
+See further discussions here:
+
+- [https://towardsdatascience.com/no-machine-learning-is-not-just-glorified-statistics-26d3952234e3](https://towardsdatascience.com/no-machine-learning-is-not-just-glorified-statistics-26d3952234e3)  
+
+- [https://www.quora.com/Is-Machine-Learning-just-glorified-statistics](https://www.quora.com/Is-Machine-Learning-just-glorified-statistics)
+
+
+
+---
+class: title-slide-section-blue, center, middle
+name: overfitting
+
+# Overfitting
+
+
+---
+# Prediction Accuracy
+
+To precisely define what makes a prediction "good," we need a formal way to measure performance:
+
+#### Loss Functions
+
+- Let `\((x^0,y^0)\)` denote a single observation from the (unseen) **test set**
+- A **loss function** `\(L(y^0, \hat{y}^0)\)` quantifies the prediction error when `\(\hat{y}^0=\hat{f}(x^0)\)`
+- The model `\(\hat{f}\)` is estimated using only the **training** data
+
+---
+# Common Loss Functions
+
+For regression:
+- Squared error (SE): `\(L(y^0, \hat{y}^0)=(y^0-\hat{y}^0)^2\)` 
+  - Penalizes large errors more heavily; sensitive to outliers
+- Absolute error (AE): `\(L(y^0, \hat{y}^0)=|y^0-\hat{y}^0|\)`
+  - More robust to outliers; constant penalty for increasing error
+
+For classification:
+- 0-1 loss: `\(L(y^0, \hat{y}^0)=I(y^0 \neq \hat{y}^0)\)` (misclassification rate)
+- Cross-entropy loss: `\(L(y^0, \hat{y}^0)=-\sum_c y^0_c \log(\hat{y}^0_c)\)` (for probabilities)
+
+The choice of loss function should reflect the specific costs of different types of prediction errors in your application.
+
+---
+# Intuition Behind the Bias-Variance Trade-off
+
+Imagine you are a teaching assistant grading exams. You've just graded a student's first exam and got a score of 95. Now you need to predict their score on the second exam. Two possible approaches:
+
+1. **Use only the first score (unbiased but variable):**
+   + Using 95 as your prediction is unbiased (doesn't systematically under or overestimate)
+   + But single exam scores vary greatly due to luck, daily preparation, etc.
+   + High variance means your prediction could be far off
+
+2. **Shrink toward the class average (biased but less variable):**
+   + If the class average is 75, you might predict (75 + 95)/2 = 85
+   + This introduces bias (systematically predicting lower than 95)
+   + But reduces variance since you're not fully relying on a single, noisy observation
+
+**Key insight:** By accepting a small amount of bias, we can significantly reduce variance, often resulting in better overall predictions.
+
+Let's simulate this to see which approach performs better in practice!
+
+???
+
+This example is taken from Susan Athey's AEA 2018 lecture, ["Machine Learning and Econometrics"](https://www.aeaweb.org/conference/cont-ed/2018-webcasts) (Athey and
+Imbens).
+
+---
+# The Bias-Variance Decomposition
+
+Under a __squared error loss function__, an optimal predictive model is one that minimizes the _expected_ squared prediction error.  
+
+It can be shown that if the true model is `\(Y=f(X)+\epsilon\)`, then
+
+`$$\begin{aligned}[t]
+\mathbb{E}\left[\text{SE}^0\right] &amp;= \mathbb{E}\left[(y^0 - \hat{f}(x^0))^2\right] \\ &amp;= \underbrace{\left(\mathbb{E}(\hat{f}(x^0)) - f(x^0)\right)^{2}}_{\text{bias}^2} + \underbrace{\mathbb{E}\left[\hat{f}(x^0) - \mathbb{E}(\hat{f}(x^0))\right]^2}_{\text{variance}} + \underbrace{\mathbb{E}\left[y^0 - f(x^0)\right]^{2}}_{\text{irreducible error}} \\ &amp;= \underbrace{\mathrm{Bias}^2 + \mathbb{V}[\hat{f}(x^0)]}_{\text{reducible error}} + \sigma^2_{\epsilon}
+\end{aligned}$$`
+
+where the expectation is over the training set _and_ `\((x^0,y^0)\)`.
+
+
+
+---
+# Understanding the Expectation Operator in Bias-Variance
+
+The expectation `\(\mathbb{E}[\text{SE}^0]\)` integrates over two sources of randomness:
+
+1. **Randomness in the training data**: Different training sets `\(\mathcal{D} = \{(x_i, y_i)\}_{i=1}^n\)` lead to different fitted models `\(\hat{f}_\mathcal{D}(x)\)`
+
+2. **Randomness in the test point**: The specific test point `\((x^0, y^0)\)` we evaluate on
+
+This gives us:
+`$$\mathbb{E}[\text{SE}^0] = \mathbb{E}_{\mathcal{D}, (x^0,y^0)}\left[(y^0 - \hat{f}_\mathcal{D}(x^0))^2\right]$$`
+
+---
+# Exam Grade Prediction Simulation
+
+Let's Draw 1000 grade duplets from the following truncated normal distribution
+
+`$$g_i \sim truncN(\mu = 75, \sigma = 15, a=0, b=100),\quad i=1,2$$`
+
+Next, calculate two types of predictions
+  - `unbiased_pred` is the first exam's grade.
+  - `shrinked_pred` is an average of the previous grade and a _prior_ mean grade of 70.
+
+
+
+Here a small sample from our simulated table:
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; attempt &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; grade1 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; grade2 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; unbiased_pred &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; shrinked_pred &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 752 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 76 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 73.0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 705 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 83 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 83 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 76.5 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 180 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 59 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 77.0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 498 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 99 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 99 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 84.5 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 929 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 77 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 77 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 73.5 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+# The Distribution of Predictions
+
+&lt;img src="02-basic-ml-concepts_files/figure-html/unnamed-chunk-11-1..svg" style="display: block; margin: auto;" /&gt;
+
+---
+
+# The MSE of Grade Predictions
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; unbiased_MSE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; shrinked_MSE &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 312.102 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 199.4203 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+Hence, the shrunk prediction turns out to be better (in the sense of MSE) then the unbiased one!
+
+__QUESTION:__ Is this a general result? Why?
+
+
+---
+# Illustrating Bias-Variance: The Consumption Function
+
+- Let's see the bias-variance tradeoff in action with a practical economic example
+
+- Consider a classic consumption function relationship:
+  `$$consumption_i = \beta_0 + \beta_1 \times income_i + \varepsilon_i$$`
+
+- We'll explore three modeling approaches with varying complexity:
+  1. **Underfitting**: Too simple (high bias, low variance)
+  2. **Overfitting**: Too complex (low bias, high variance)
+  3. **"Just right"**: Optimal complexity balance
+
+- This will show how different economists might approach the same data differently
+
+
+---
+# The "Experiment"
+
+.half-box[
+**Our Experiment:**
+- Three economists (A, B, C) each receive a different subset of consumption data
+- All data comes from the same "true" model
+- Each economist must predict consumption at income = 70 (outside their observed range)
+- We'll compare their approaches with different model complexities
+]
+
+**Step 1: Simulate the DGP:**
+
+``` r
+set.seed(1505) # for replicating the simulation
+
+df &lt;- crossing(economist = c("A", "B", "C"),
+         obs = 1:20) %&gt;% 
+  mutate(economist = as.factor(economist)) %&gt;% 
+  mutate(income = rnorm(n(), mean = 100, sd = 10)) %&gt;% 
+  mutate(consumption = 10 + 0.5 * income + rnorm(n(), sd = 10))
+```
+
+---
+# Scatterplot of the Data
+
+.pull-left[
+
+``` r
+df %&gt;% 
+  ggplot(aes(y = consumption,
+             x = income)) +
+  geom_point() +
+  geom_vline(xintercept = 70, linetype = "dashed")
+```
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-13-1..svg)&lt;!-- --&gt;
+]
+---
+# Split the Sample Between the Three Economists
+
+.pull-left[
+
+``` r
+df %&gt;% 
+  ggplot(aes(y = consumption,
+             x = income,
+             color = economist)) +
+  geom_point() +
+  geom_vline(xintercept = 70, linetype = "dashed")
+```
+
+
+``` r
+knitr::kable(sample_n(df,6), format = "html")
+```
+
+&lt;table&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; economist &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; obs &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; income &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; consumption &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; C &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 96.21703 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 56.77998 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; A &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 100.34957 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 59.47988 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; A &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 80.35239 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 57.47065 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; B &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 110.42183 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45.25598 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; A &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 91.38508 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 67.87680 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; C &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 101.26113 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 68.96492 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-14-1..svg)&lt;!-- --&gt;
+]
+
+---
+# Underffiting: High Bias, Low Variance
+
+
+.pull-left[
+The model: unconditional mean
+
+`$$Y_i = \beta_0+\varepsilon_i$$`
+
+``` r
+df %&gt;% 
+  ggplot(aes(y = consumption,
+             x = income,
+             color = economist)) +
+  geom_point() +
+  geom_smooth(method = lm,
+*             formula = y ~ 1,
+              se = FALSE,
+              color = "black") +
+  facet_wrap(~ economist) +
+  geom_vline(xintercept = 70, linetype = "dashed") +
+  theme(legend.position = "bottom")
+```
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-15-1..svg)&lt;!-- --&gt;
+]
+---
+# Overfitting: Low Bias, High Variance
+
+.pull-left[
+The model: high-degree polynomial
+
+`$$Y_i = \beta_0+\sum_{j=1}^{\lambda}\beta_jX_i^{\lambda}+\varepsilon_i$$`
+
+
+``` r
+df %&gt;% 
+  ggplot(aes(y = consumption,
+             x = income,
+             color = economist)) +
+  geom_point() +
+  geom_smooth(method = lm,
+*             formula = y ~ poly(x,5),
+              se = FALSE,
+              color = "black") +
+  facet_wrap(~ economist) +
+  geom_vline(xintercept = 70, linetype = "dashed") +
+  theme(legend.position = "bottom")
+```
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-16-1..svg)&lt;!-- --&gt;
+]
+
+---
+# "Justfitting": Bias and Variance are Just Right
+
+.pull-left[
+The model: linear regression
+
+`$$Y_i = \beta_0+\beta_1 X_i + \varepsilon_i$$`
+
+
+``` r
+df %&gt;% 
+  ggplot(aes(y = consumption,
+             x = income,
+             color = economist)) +
+  geom_point() +
+  geom_smooth(method = lm,
+*             formula = y ~ x,
+              se = FALSE,
+              color = "black") +
+  facet_wrap(~ economist) +
+  geom_vline(xintercept = 70, linetype = "dashed") +
+  theme(legend.position = "bottom")
+```
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-17-1..svg)&lt;!-- --&gt;
+]
+---
+# The Typical Bias-Variance Trade-off in ML
+
+
+Typically, ML models strive to find levels of bias and variance that are "just right":
+
+&lt;img src="figs/biasvariance1.png" width="60%" style="display: block; margin: auto;" /&gt;
+
+
+---
+# When is the Bias-Variance Trade-off Important?
+
+In low-dimensional settings ( `\(n\gg p\)` )  
+  + Overfitting risk decreases as `\(n\)` grows
+  + Training MSE approximates test MSE more closely
+  + Conventional tools (e.g., OLS) often perform adequately
+  + *BUT:* Bias-variance tradeoff still matters with limited samples
+
+INTUITION: As `\(n\rightarrow\infty\)`, model parameters converge to their true values.
+
+In high-dimensional settings ( `\(n\ll p\)` )  
+  + Overfitting becomes almost inevitable
+  + Training MSE significantly underestimates test MSE
+  + Regularization becomes essential (LASSO, ridge, elastic net)
+  + Feature selection and dimensionality reduction gain importance
+  
+
+---
+# Bias-Variance Trade-off in Low-dimensional Settings
+
+.pull-left[
+The model is a 3rd degree polynomial
+
+`$$Y_i = \beta_0+\beta_1X_i+\beta_2X^2_i+\beta_3X_i^3+\varepsilon_i$$`
+
+only now, the sample size for each economist increases to `\(N=500\)`.
+
+&gt; __INTUITION:__ as `\(n\rightarrow\infty\)`, `\(\hat{\beta}_2\)` and `\(\hat{\beta}_3\)` converge to their true value, zero.
+
+
+
+
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-19-1..svg)&lt;!-- --&gt;
+]
+
+
+---
+class: title-slide-section-blue, center, middle
+name: regularization
+
+# Regularization
+
+
+---
+# Regularization: Directly Controlling Model Complexity
+
+- The bias-variance tradeoff shows that *increased complexity* often leads to overfitting
+  
+- **Regularization** explicitly penalizes model complexity during training
+  - Adds a complexity penalty to the loss function
+  - Forces the model to balance fitting training data with staying simple
+  
+&lt;midd-blockquote&gt;
+Regularization typically results in models that are mathematically "wrong" but predict more accurately.
+&lt;/midd-blockquote&gt;
+
+---
+# How to Detect Overfitting Without a Test Set?
+
+The test set MSE is *unobservable* during model development. Our solution:
+
+- **Create our own "mini test sets"** from the training data
+  - Split available data into training and validation portions
+  - Train on one part, evaluate on another
+
+- **Why this works:** 
+  - Under the stable DGP assumption, the validation set approximates future data
+  - Allows us to estimate out-of-sample error before seeing actual test data
+  
+- This approach leads naturally to **cross-validation** techniques
+
+
+---
+# Validation
+
+.pull-left[
+Split the sample into three distinct sets: a training set, a validation set and a test set:
+
+&lt;img src="figs/train_validate.png" width="100%" style="display: block; margin: auto;" /&gt;
+The validation process:
+1. Fit a model to the training set
+2. Use the model to predict outcomes from the validation set
+3. Calculate validation MSE to approximate the test-MSE
+4. Once model selection is complete, evaluate on the final test set
+]
+
+.pull-right[
+The validation error is calculated as:
+`$$\text{V-MSE} = \frac{1}{n_v}\sum_{i \in \mathcal{V}}(y_i - \hat{f}(x_i))^2$$`
+where `\(\mathcal{V}\)` is the validation set of size `\(n_v\)`.
+
+
+**CONCERNS**: 
+1. Sensitive to the specific training-validation split
+2. Does not use all available information for training
+3. Reduces effective sample size for model fitting
+]
+
+---
+# k-fold Cross-validation
+
+.pull-left[
+Split the training set into `\(k\)` roughly equal-sized parts ( `\(k=5\)` in this example):
+
+
+&lt;img src="figs/train_cross_validate.png" width="100%" style="display: block; margin: auto;" /&gt;
+
+Approximate the test-MSE using the mean of `\(k\)` split-MSEs:
+`$$\text{CV-MSE} = \frac{1}{k}\sum_{j=1}^{k}\text{V-MSE}_j$$`
+]
+
+.pull-right[
+**Key advantages:**
+1. Uses all available data for both training and validation
+2. Reduces sensitivity to particular data splits
+3. Provides a more robust estimate of out-of-sample performance
+4. Each observation is used for both training and validation
+
+**Common choices for `\(k\)`:**
+- `\(k=5\)` or `\(k=10\)` are typical
+- `\(k=n\)` is called "leave-one-out" cross-validation
+]
+
+
+---
+# Cross-Validation and the Bias-Variance Tradeoff
+
+- Cross-validation helps us estimate the *expected* test error by simulating multiple training-test splits
+- This directly relates to our bias-variance decomposition:
+  `$$\mathbb{E}[\text{SE}^0] = \mathrm{Bias}^2 + \mathbb{V}[\hat{f}(x^0)] + \sigma^2_{\epsilon}$$`
+
+- The CV-MSE provides a practical estimate of `\(\mathbb{E}[\text{SE}^0]\)` without requiring infinite training sets
+- By varying model complexity and measuring CV-MSE, we can find the optimal bias-variance tradeoff
+
+
+---
+# Sample Counterparts in Practice
+
+The CV-MSE approximates the expected test error from our bias-variance decomposition:
+
+`$$\text{CV-MSE} = \frac{1}{k}\sum_{j=1}^{k}\text{V-MSE}_j \approx \mathbb{E}[\text{SE}^0]$$`
+
+This works through two levels of approximation:
+
+1. **Training set variation**: Each fold `\(j\)` uses a different training set `\(\mathcal{D}_j\)`
+   - This simulates drawing multiple training sets from the population
+   - Helps capture variance in `\(\hat{f}(x^0)\)` across different possible training data
+
+2. **Test point averaging**: Within each fold, we average squared errors across validation points
+   - This approximates the expectation over test points `\((x^0,y^0)\)`
+   
+
+---
+# Which Model to Choose?
+
+.pull-left[
+As model complexity increases:
+- Bias typically decreases
+- Variance typically increases
+- CV-MSE helps us find the sweet spot
+
+Hence, model selection amounts to choosing the complexity level that minimizes CV-MSE.
+
+Recall that the test-MSE is unobservable, and CV-MSE is our best approximation to guide model selection.
+]
+
+.pull-right[
+&lt;img src="figs/biasvariance1.png" width="100%" style="display: block; margin: auto;" /&gt;
+]
+
+---
+# Sounds Familiar? Same Principle Different Approach
+
+- The model selection principle behind CV-MSE connects to criteria you already know:  
+  - **Adjusted R²**: Penalizes R² based on degrees of freedom
+  - **AIC/BIC**: Balance goodness-of-fit with complexity penalties
+  
+- All use the same core idea: `\(\text{Criterion} = \text{Fit measure} + \text{Complexity penalty}\)`
+
+- **Key distinction**: 
+  - Traditional statistics use analytical formulas with theoretical penalties
+  - ML uses cross-validation to let the data empirically determine optimal complexity
+  - Both aim to avoid overfitting and improve generalization to new data
+
+---
+class: title-slide-section-blue, center, middle
+name: economics
+
+# ML and Causality
+
+
+---
+# ML vs. Econometrics: Key Distinctions
+
+Apart from terminology differences, here are the fundamental contrasts:
+
+|   Machine Learning   | Econometrics |
+|:---------------------|:-------------|
+| Focus on prediction `\(\hat{Y}\)` | Focus on causal effects `\(\hat{\beta}\)` |
+| Optimize for out-of-sample accuracy | Optimize for parameter properties (unbiasedness, consistency) |
+| Validation via prediction error | Validation via statistical significance |
+| Requires stable environment | Enables counterfactual analysis |
+| Often black-box approaches | Typically structural models |
+| Question: "What will happen?" | Question: "What if we intervene?" |
+
+&gt; ML learns correlations in data; econometrics identifies causal mechanisms.
+
+---
+# ML and Causal Inference: The Fundamental Challenge
+
+&lt;midd-blockquote&gt; *"Data are profoundly dumb about causal relationships."*   
+.right[&amp;mdash; [__Pearl and Mackenzie, *The Book of Why*__](http://bayes.cs.ucla.edu/WHY/)]
+&lt;/midd-blockquote&gt; 
+
+**Why econometrics can't be replaced by ML:** 
+Intervention fundamentally violates the stable DGP assumption that ML relies on:
+
+`$$P(Y|X=x) \neq P(Y|do(X=x)),$$`
+
+where:
+- `\(P(Y|X=x)\)` is the probability of `\(Y\)` given that we *observe* `\(X=x\)` (prediction)  
+- `\(P(Y|do(X=x))\)` is the probability of `\(Y\)` given that we *intervene* to set `\(X=x\)` (causal effect)
+
+&gt; While ML excels at the first equation, econometric methods are designed to estimate the second.
+
+---
+# From Prediction to Causation: A Simple Example
+
+.pull-left[
+
+**EXAMPLE:** An ML algorithm finds that `coffee` consumption is a strong predictor of `dementia`. Based on this correlation, should we recommend avoiding coffee?
+
+
+
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-23-1..svg)&lt;!-- --&gt;
+]
+
+???
+
+---
+# To Explain or to Predict? 
+
+.pull-left[
+- Despite being a good *predictor*, `coffee` has no causal effect on `dementia`
+- The correlation exists because both are influenced by an underlying factor: `addictive` behavior
+- `Smoking` is the actual causal factor for `dementia`
+
+&gt; This illustrates why ML's predictive power doesn't translate directly to policy effectiveness. The `\(P(Y|X=x) \neq P(Y|do(X=x))\)` distinction is not just theoretical—it has practical implications.
+
+
+
+
+]
+.pull-right[
+![](02-basic-ml-concepts_files/figure-html/unnamed-chunk-24-1..svg)&lt;!-- --&gt;
+]
+
+???
+
+The title of this slide "To Explain or to Predict?" is the name of a must-read [paper](https://projecteuclid.org/euclid.ss/1294167961) by [Shmueli (2010)](#bib-shmueli2010explain) that clarifies the distinction between predicting and explaining.
+
+---
+# ML in Aid of Econometrics
+
+Consider the standard causal inference problem:
+
+`$$Y_i=\alpha+\underbrace{\tau D_i}_{\text{causal parameter}} +\underbrace{f(X_i)}_{\text{confounding factors}}+\varepsilon_i,\quad\text{for }i=1,\dots,n$$`
+
+where:
++ `\(Y_i\)` is the outcome variable
++ `\(D_i \in \{0,1\}\)` is the treatment indicator
++ `\(X_i\)` is a potentially high-dimensional vector of control variables
++ `\(\tau\)` is our target: the average treatment effect (ATE)
+
+
+---
+# ML in Aid of Econometrics
+
+Consider the standard causal inference problem:
+
+`$$Y_i=\alpha+\underbrace{\tau D_i}_{\text{causal parameter}} +\underbrace{f(X_i)}_{\text{confounding factors}}+\varepsilon_i,\quad\text{for }i=1,\dots,n$$`
+
+**Key insight:** We can decompose this problem into:
+1. **Causal identification** (econometrics): Ensuring `\(\tau\)` has a causal interpretation
+2. **Nuisance estimation** (machine learning): Modeling complex relationships in `\(f(X_i)\)`
+
+**Why this matters:**
+- When `\(p\)` is large (many controls), traditional methods struggle
+- ML excels at modeling `\(f(X_i)\)` without strong functional form assumptions
+- This hybrid approach allows us to focus on causal parameter `\(\tau\)` while letting ML handle the high-dimensional prediction task
+
+
+---
+class: .title-slide-final, center, inverse, middle
+
+# `slides |&gt; end()`
+
+[&lt;i class="fa fa-github"&gt;&lt;/i&gt; Source code](https://github.com/ml4econ/lecture-notes-2025/blob/master/02-basic-ml-concepts/02-basic-ml-concepts.Rmd)  
+
+---
+# References
+
+&lt;a name=bib-agrawal2018prediction&gt;&lt;/a&gt;[[1]](#cite-agrawal2018prediction) A.
+Agrawal, J. Gans, and A. Goldfarb. _Prediction Machines: The Simple Economics
+of Artificial Intelligence_. Harvard Business Review Press, 2018.
+
+[2] S. Athey. "The impact of machine learning on economics". In: _The
+Economics of Artificial Intelligence: An Agenda_. University of Chicago
+Press, 2018.
+
+&lt;a name=bib-breiman2001statistical&gt;&lt;/a&gt;[[3]](#cite-breiman2001statistical) L.
+Breiman. "Statistical modeling: The two cultures (with comments and a
+rejoinder by the author)". In: _Statistical science_ 16.3 (2001), pp.
+199-231.
+
+[4] T. Hastie, R. Tibshirani, and J. Friedman. _The Elements of Statistical
+Learning: Data Mining, Inference, and Prediction, Second Edition_. Springer,
+פבר. 2009. ISBN: 9780387848570.
+
+[5] G. James, T. Hastie, D. Witten, et al. _An Introduction to Statistical
+Learning: With Applications in R_. Springer Texts in Statistics. Springer
+London, Limited, 2021. ISBN: 9781461471370.
+
+[6] S. Mullainathan and J. Spiess. "Machine learning: an applied econometric
+approach". In: _Journal of Economic Perspectives_ 31.2 (2017), pp. 87-106.
+
+---
+# References
+
+[1] S. Mullainathan and J. Spiess. "Machine learning: an applied econometric
+approach". In: _Journal of Economic Perspectives_ 31.2 (2017), pp. 87-106.
+
+&lt;a name=bib-shmueli2010explain&gt;&lt;/a&gt;[[2]](#cite-shmueli2010explain) G.
+Shmueli. "To explain or to predict?" In: _Statistical science_ 25.3 (2010),
+pp. 289-310.
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9",
+"slideNumberFormat": "<div class=\"progress-bar-container\">\n  <div class=\"progress-bar\" style=\"width: calc(%current% / %total% * 100%);\">\n  </div>\n</div>\n"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
