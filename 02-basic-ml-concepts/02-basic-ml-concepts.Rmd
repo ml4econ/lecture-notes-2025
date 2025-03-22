@@ -525,7 +525,7 @@ __QUESTION:__ Is this a general result? Why?
 - Let's see the bias-variance tradeoff in action with a practical economic example
 
 - Consider a classic consumption function relationship:
-  $$consumption_i = \beta_0 + \beta_1 \times income_i + \varepsilon_i$$
+  $$consumption_i = f(income_i) + \varepsilon_i$$
 
 - We'll explore three modeling approaches with varying complexity:
   1. **Underfitting**: Too simple (high bias, low variance)
@@ -541,7 +541,7 @@ __QUESTION:__ Is this a general result? Why?
 .half-box[
 **Our Experiment:**
 - Three economists (A, B, C) each receive a different subset of consumption data
-- All data comes from the same "true" model
+- All data comes from the same "true" **linear** model
 - Each economist must predict consumption at income = 70 (outside their observed range)
 - We'll compare their approaches with different model complexities
 ]
@@ -555,7 +555,7 @@ df <- crossing(economist = c("A", "B", "C"),
          obs = 1:20) %>% 
   mutate(economist = as.factor(economist)) %>% 
   mutate(income = rnorm(n(), mean = 100, sd = 10)) %>% 
-  mutate(consumption = 10 + 0.5 * income + rnorm(n(), sd = 10))
+  mutate(consumption = 10 + 0.5 * income + rnorm(n(), sd = 10)) #<<
 ```
 
 ---
@@ -613,7 +613,7 @@ knitr::kable(sample_n(df,6), format = "html")
 .pull-left[
 The model: unconditional mean
 
-$$Y_i = \beta_0+\varepsilon_i$$
+$$consumption_i = \beta_0+\varepsilon_i$$
 ```{r underfit, fig.width=6, fig.show='hide', fig.retina=3}
 
 df %>% 
@@ -642,7 +642,7 @@ df %>%
 .pull-left[
 The model: high-degree polynomial
 
-$$Y_i = \beta_0+\sum_{j=1}^{\lambda}\beta_jX_i^{\lambda}+\varepsilon_i$$
+$$consumption_i = \beta_0+\sum_{j=1}^{p}\beta_j\times income_i^{j}+\varepsilon_i$$
 
 ```{r overfit, fig.width=6, fig.show='hide', fig.retina=3}
 
@@ -668,12 +668,12 @@ df %>%
 ]
 
 ---
-# "Justfitting": Bias and Variance are Just Right
+# "Just Right": Bias and Variance are Balanced
 
 .pull-left[
-The model: linear regression
+The model: linear
 
-$$Y_i = \beta_0+\beta_1 X_i + \varepsilon_i$$
+$$consumption_i = \beta_0+\beta_1 \times income_i + \varepsilon_i$$
 
 ```{r justfit, fig.width=6, fig.show='hide', fig.retina=3}
 
@@ -795,7 +795,7 @@ Regularization typically results in models that are mathematically "wrong" but p
 ---
 # How to Detect Overfitting Without a Test Set?
 
-The test set MSE is *unobservable* during model development. Our solution:
+The test set MSE is *unobservable* during model development. The solution:
 
 - **Create our own "mini test sets"** from the training data
   - Split available data into training and validation portions
@@ -805,8 +805,6 @@ The test set MSE is *unobservable* during model development. Our solution:
   - Under the stable DGP assumption, the validation set approximates future data
   - Allows us to estimate out-of-sample error before seeing actual test data
   
-- This approach leads naturally to **cross-validation** techniques
-
 
 ---
 # Validation
@@ -884,7 +882,7 @@ $$\text{CV-MSE} = \frac{1}{k}\sum_{j=1}^{k}\text{V-MSE}_j$$
 
 The CV-MSE approximates the expected test error from our bias-variance decomposition:
 
-$$\text{CV-MSE} = \frac{1}{k}\sum_{j=1}^{k}\text{V-MSE}_j \approx \mathbb{E}[\text{SE}^0]$$
+$$\text{CV-MSE} = \frac{1}{k}\sum_{j=1}^{k}\text{V-MSE}_j \approx \mathbb{E}_{\left(x^0, y^0\right), \mathcal{D}}\left[\left(y^0-\hat{f}_{\mathcal{D}}\left(x^0\right)\right)^2\right]$$
 
 This works through two levels of approximation:
 
