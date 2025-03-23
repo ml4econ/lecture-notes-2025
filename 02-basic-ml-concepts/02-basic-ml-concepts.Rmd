@@ -70,7 +70,7 @@ bib <- ReadBib("refs/refs.bib", check = FALSE)
 A billion Google searches ago ... was this morning._"  
 .right[Hal Varian (2013)]</midd-blockquote>
 
-Today, we are at **~9 billion** Google searches per day!
+Today, we are at **~14 billion** Google searches per day!
 
 The 4 Vs of big data:  
 
