@@ -46,8 +46,9 @@ Students are expected to:
 | **7** | Causal Inference | 
 | **8** | High-Dimensional Confounding Adjustment |
 | **9** | High-Dimensional Heterogeneous Treatment Effects |
-| **10** | Text Analysis |
-| **11** | Large Language Models |
+| **10** | Text as Data |
+| **11** | Deep Learning
+| **12** | Large Language Models |
 
 ## Course Materials
 
