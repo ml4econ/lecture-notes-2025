@@ -212,7 +212,8 @@ This course deliberately excludes:
 | [**8**](#week-7)      | Causal Inference                           |
 | [**9**](#week-8)      | Lasso and Average Treatment Effects        |
 | [**10**](#week-9)     | Trees and Heterogeneous Treatment Effects  |
-| [**11**](#week-10)    | Prediction Policy Problems                 |
+| [**11**](#week-10)    | Text as Data                               |
+| [**11**](#week-10)    | Deep Learning                              |
 | [**12**](#week-11)    | Large Language Models                      |
 
 
