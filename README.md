@@ -64,9 +64,13 @@ In this lecture, we will cover the basic concepts of machine learning, including
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/02-basic-ml-concepts/02-basic-ml-concepts.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/02-basic-ml-concepts/02-basic-ml-concepts.pdf)
 
-3. Reproducibility
+3. *ML Workflow*  
+In this lecture, we will discuss the machine learning workflow, including data preprocessing, feature engineering, and model selection.  
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/03-ml-workflow/03-ml-workflow.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/03-ml-workflow/03-ml-workflow.pdf)
 
-4. ML Workflow
+
+4. Reproducibility
 
 5. Regression and Regularization
 
