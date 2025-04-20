@@ -1,0 +1,161 @@
+---
+title: "Ridge and Lasso Thresholding: A Didactic Demonstration"
+author: "Itamar Caspi"
+date: '(updated: `r Sys.Date()`)'
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    keep_md: no
+    theme: journal
+    toc: true
+    toc_depth: 3
+    toc_float: true
+abstract: |
+  This short tutorial illustrates, in the simplest possible setting, the similarities and differences between ordinary least‑squares (OLS), ridge, and lasso estimators.
+  With an orthonormal design matrix (the identity), analytic solutions exist: ridge uniformly shrinks coefficients toward zero while lasso applies a soft–thresholding rule that can set small coefficients exactly to zero.
+  Using simulated data we fit all three models, visualise their estimates, and discuss the intuition behind each penalisation scheme.
+---
+
+```{r setup, include=FALSE}
+# reproducibility and chunk defaults
+knitr::opts_chunk$set(
+  eval     = TRUE,
+  echo     = TRUE,
+  warning  = FALSE,
+  message  = FALSE,
+  comment  = NA,
+  dpi      = 300,
+  fig.align = "center"
+)
+library(glmnet)     # penalised regression
+library(tidyverse)  # data wrangling & plotting
+```
+
+# 1.  Background
+
+Shrinkage and selection procedures are essential when the analyst wishes to prevent over‑fitting or perform variable selection.  
+Two classics are:
+
+* **Ridge regression** (ℓ² penalty) — continuous shrinkage, never sets coefficients exactly to zero.  
+* **Lasso** (ℓ¹ penalty) — soft‑thresholding that can zero out small coefficients, thereby performing implicit model selection.
+
+In an *orthonormal* design matrix \( X'X = I \), their solutions simplify to scalar operations on the OLS estimates, which makes the mechanics crystal‑clear.
+
+# 2.  Data‑generating mechanism
+
+For didactic clarity we simulate the most elementary scenario: the design matrix is the identity and the response is a linear trend.
+
+```{r simulate-data}
+# response: a deterministic linear trend
+y      <- seq(-0.5, 0.5, 0.1)
+n      <- length(y)
+
+# design matrix: identity (orthonormal)
+X      <- diag(n)
+
+# penalty magnitude
+lambda <- 0.1
+```
+
+#### 2.1. Why is $\hat\beta^{\text{OLS}} = y$ when $X = I$?
+
+The ordinary least‑squares estimator solves  
+$$\displaystyle \hat\beta^{\text{OLS}} = \arg\min_{\beta} \; \tfrac{1}{2}\lVert y - X\beta \rVert_2^2$$.  
+
+If $X = I_n$ (and there is no intercept), the objective collapses to $\tfrac{1}{2}\lVert y - \beta \rVert_2^2$, whose unique minimiser is $\beta = y$.  
+
+Equivalently, the normal equations give  
+$$X'X\,\hat\beta^{\text{OLS}} = X'y \;\;\Rightarrow\;\; I_n \hat\beta^{\text{OLS}} = y \;\;\Rightarrow\;\; \hat\beta^{\text{OLS}} = y.$$  
+
+Thus any departure of the ridge or lasso estimates from $y$ is attributable solely to the penalties.
+
+
+# 3.  Estimators
+
+## 3.1.  Ordinary least squares
+
+```{r ols-fit}
+ols <- lm(y ~ X - 1)   # -1 removes the intercept term
+b_ols <- coef(ols)
+```
+
+Because \( X = I\), \( \hat\beta^{\text{OLS}} = y\).
+
+## 3.2.  Ridge regression
+
+```{r ridge-fit}
+ridge <- glmnet(
+  x = X,
+  y = y,
+  alpha = 0,           # 0 = ridge
+  standardize = TRUE, # already orthonormal
+  intercept = FALSE
+)
+b_ridge <- coef(ridge, s = lambda)[2:(n+1), 1]
+```
+
+With an orthonormal design the closed‑form is
+
+\[
+\hat\beta^{\text{ridge}}_j = \frac{y_j}{1 + \lambda},
+\]
+
+so every coefficient is scaled by a constant factor \(1/(1+\lambda)\).
+
+## 3.3.  Lasso
+
+```{r lasso-fit}
+lasso <- glmnet(
+  x = X,
+  y = y,
+  alpha = 1,           # 1 = lasso
+  standardize = TRUE,
+  intercept = FALSE
+)
+b_lasso <- coef(lasso, s = lambda)[2:(n+1), 1]
+```
+
+The lasso solution applies the *soft‑thresholding* operator
+
+\[
+\hat\beta^{\text{lasso}}_j =
+\operatorname{sign}(y_j)\, (|y_j| - \lambda / 2)_+ .
+\]
+
+Coefficients whose absolute value is \(\le \lambda/2\) collapse to zero; larger ones are shrunken toward zero by \(\lambda/2\).
+
+# 4.  Visual comparison
+
+```{r plot-estimates}
+bs <- tibble(
+  beta_OLS   = b_ols,
+  beta_lasso = b_lasso,
+  beta_ridge = b_ridge
+)
+
+bs %>%
+  ggplot(aes(x = beta_OLS)) +
+  geom_line(aes(y = beta_OLS,   colour = "OLS")) +
+  geom_line(aes(y = beta_lasso, colour = "Lasso")) +
+  geom_line(aes(y = beta_ridge, colour = "Ridge")) +
+  scale_colour_manual(NULL, values = c("OLS" = "black", "Lasso" = "firebrick", "Ridge" = "steelblue")) +
+  labs(
+    x = expression(hat(beta)^{OLS}),
+    y = "Coefficient estimate"
+  ) +
+  theme_light(base_size = 12)
+```
+
+* Ridge (blue) compresses the entire range by the constant factor \(1/(1+\lambda)\).  
+* Lasso (red) coincides with OLS outside the \(\pm \lambda/2\) neighbourhood of zero but sets the central coefficient exactly to zero, showcasing its sparsity property.
+
+# 5.  Take‑aways
+
+* **Uniform vs. selective shrinkage**: Ridge treats all coefficients equally, whereas lasso discriminates based on magnitude.  
+* **Model selection**: Lasso can yield a sparse model *without an explicit selection step*.  
+* **Orthonormal design as a microscope**: Using \(X = I\) isolates the penalty’s action, free from multicollinearity or scaling issues.
+
+
+
+---

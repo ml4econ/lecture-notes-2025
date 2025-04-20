@@ -1,0 +1,166 @@
+---
+title: "Bias–Variance Trade-off Under a Noisy Slope"
+author: "Itamar Caspi"
+date: '(updated: `r Sys.Date()`)'
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    keep_md: no
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+abstract: >
+  This report investigates the bias–variance trade-off that arises when a researcher faces a highly uncertain slope estimate. Using a Monte-Carlo simulation calibrated so that the OLS slope’s expected standard error is roughly 10, we compare out-of-sample root-mean-squared prediction error (RMSE) between (i) an OLS model that includes the regressor and (ii) an intercept-only counterpart. The findings show that, under extreme coefficient uncertainty, the variance component can overwhelm bias: discarding the noisy predictor generally delivers lower risk and tighter predictive accuracy than using it unchanged.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 4
+)
+```
+
+```{r packages}
+library(tidyverse)
+```
+
+# 1 Motivation
+
+Suppose the researcher obtains
+
+\[\hat y = 0 + 2\,x \quad (\text{s.e.}(\hat\beta_1)=10)\]
+
+and must decide whether to use that highly uncertain coefficient when forecasting.  This R Markdown document reproduces the situation by Monte-Carlo and compares
+
+* **Model A** – _use_ \(x\): OLS on \(y \sim x\)
+* **Model B** – _drop_ \(x\): intercept-only model.
+
+We focus on *out-of-sample* **root-mean-squared prediction error (RMSE)**.
+
+# 2 Simulation design
+
+* True DGP: \(y = 0 + 2x + \varepsilon,\; \varepsilon \sim \mathcal N(0,\sigma^2)\).
+* Small training size (\(n = 5\)) and a large noise level (\(\sigma = 20\)) yield
+  \(E[\text{s.e.}(\hat\beta_1)] \approx 10\).
+* Each Monte-Carlo repetition fits both models on the training data and evaluates
+  RMSE on an independent 100-point test set (close to the true risk).
+
+```{r parameters}
+params <- list(
+  n_sim   = 500,   # Monte-Carlo repetitions
+  n_train = 5,     # small ⇒ noisy slope
+  n_test  = 100,   # test sample size
+  beta0   = 0,
+  beta1   = 2,
+  sigma   = 20,
+  seed    = 123
+)
+```
+
+# 3 Core Monte-Carlo loop
+
+```{r simulation}
+simulate_rmse <- function(n_sim, n_train, n_test, beta0, beta1, sigma) {
+  rmse_full <- numeric(n_sim)
+  rmse_null <- numeric(n_sim)
+  b1_hat    <- numeric(n_sim)
+  se_b1     <- numeric(n_sim)
+
+  for (s in seq_len(n_sim)) {
+    ## Generate training data
+    x_train <- rnorm(n_train)
+    y_train <- beta0 + beta1 * x_train + rnorm(n_train, 0, sigma)
+
+    ## Independent test data
+    x_test  <- rnorm(n_test)
+    y_test  <- beta0 + beta1 * x_test + rnorm(n_test, 0, sigma)
+
+    ## Fit the two models
+    fit_full <- lm(y_train ~ x_train)
+    fit_null <- lm(y_train ~ 1)
+
+    ## Store coefficient and s.e.
+    b1_hat[s] <- coef(fit_full)["x_train"]
+    se_b1[s]  <- summary(fit_full)$coefficients["x_train", "Std. Error"]
+
+    ## Predict and compute RMSE
+    pred_full <- predict(fit_full, newdata = data.frame(x_train = x_test))
+    pred_null <- predict(fit_null, newdata = data.frame(x_train = x_test))
+
+    rmse_full[s] <- sqrt(mean((pred_full - y_test)^2))
+    rmse_null[s] <- sqrt(mean((pred_null - y_test)^2))
+  }
+
+  list(
+    rmse    = tibble(model = rep(c("With x", "Intercept only"), each = n_sim),
+                     rmse  = c(rmse_full, rmse_null)),
+    coef_df = tibble(b1_hat = b1_hat, se_b1 = se_b1)
+  )
+}
+
+set.seed(params$seed)
+mc <- simulate_rmse(
+  n_sim   = params$n_sim,
+  n_train = params$n_train,
+  n_test  = params$n_test,
+  beta0   = params$beta0,
+  beta1   = params$beta1,
+  sigma   = params$sigma
+)
+```
+
+# 4 Coefficient uncertainty check
+
+```{r coef-summary}
+mc$coef_df %>%
+  summarise(
+    `Mean(β̂₁)`     = mean(b1_hat),
+    `SD(β̂₁)`       = sd(b1_hat),
+    `Mean se(β̂₁)`  = mean(se_b1)
+  ) %>%
+  knitr::kable(digits = 3, caption = "Empirical distribution of the slope estimate and its standard error")
+```
+
+> \(E[\text{s.e.}(\hat\beta_1)]\) is indeed close to 10, confirming that our design matches the lecture example.
+
+# 5 Predictive performance
+
+## 5.1 RMSE table
+
+```{r rmse-table}
+mc$rmse %>%
+  group_by(model) %>%
+  summarise(
+    `Mean RMSE` = mean(rmse),
+    `SD RMSE`   = sd(rmse)
+  ) %>%
+  knitr::kable(digits = 2, caption = paste0("Out-of-sample RMSE across ", params$n_sim, " replications"))
+```
+
+## 5.2 Distribution plot
+
+```{r rmse-plot, fig.cap="Distribution of out-of-sample RMSE (box plot)", out.width="90%"}
+mc$rmse %>%
+  ggplot(aes(x = model, y = rmse, fill = model)) +
+  geom_boxplot(width = 0.55, alpha = 0.6, outlier.size = 0.6) +
+  labs(x = NULL, y = "Root mean-squared prediction error") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none")
+```
+
+# 6 Discussion
+
+*Even with the true slope embedded in the DGP, the extreme variance of \(\hat\beta_1\)
+  nullifies its value for prediction.*  Dropping the regressor—trading a touch of bias for a substantial variance reduction—wins on average when evaluated by RMSE.
+
+In practice there are gentler ways to strike the balance:
+
+* **Ridge / lasso** shrink \(\hat\beta_1\) toward 0 rather than discarding it.
+* **Bayesian priors** (e.g. \(\beta_1 \sim \mathcal N(0,\tau^2)\)) achieve the same via posterior shrinkage.
+
+Feel free to experiment by tweaking `params`, adding ridge fits, or reporting coverage of predictive intervals.

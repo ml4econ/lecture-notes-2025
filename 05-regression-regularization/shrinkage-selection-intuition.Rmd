@@ -1,0 +1,196 @@
+---
+title: "Shrinkage and Selection Intuition"
+author: "Itamar Caspi"
+date: '(updated: `r Sys.Date()`)'
+output:
+  html_document:
+    code_folding: show
+    highlight: haddock
+    keep_md: no
+    theme: journal
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+abstract: >
+  Ridge regression and the lasso are two popular regularization techniques used in linear regression. In this document, we explore the intuition behind these methods in a simplified setting where the number of observations equals the number of predictors, as in Hastie et al. (2015.) We show how ridge regression shrinks all coefficients by the same proportion, while the lasso can shrink some coefficients to exactly zero, effectively performing feature selection.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load necessary packages
+
+```{r, message=FALSE, warning=FALSE, eval=TRUE}
+library(tidyverse)   # for data wrangling and visualization
+library(glmnet)      # for estimating ridge and lasso
+library(cowplot)     # for combining plots
+library(leaps)       # for subset selection
+```
+
+## Setup
+
+To better understand the behavior of ridge regression and the lasso, let's consider a simplified case where the number of observations ($n$) is equal to the number of predictors ($p$), and the design matrix ($\mathbf{X}$) is a diagonal matrix with 1's on the diagonal and 0's in all off-diagonal elements. Additionally, assume that we are performing regression without an intercept.
+
+Let's set up this scenario. First, define the dimension of the data $n = p = 11$:
+
+```{r}
+n <- 11  # number of observations
+p <- 11  # number of predictors
+```
+
+Next, create the design matrix $\mathbf{X}$ as a diagonal matrix:
+
+```{r}
+X <- diag(n)  # design matrix
+X
+```
+
+In this setting, the response vector ($\mathbf{y}$) is simply set as a sequence of integers from $-5$ to $5$.
+
+```{r}
+y <- -5:5  # response vector
+y
+```
+
+## OLS estimation
+
+In this simplified setting, the least squares problem reduces to finding the coefficients $\beta_1, \ldots, \beta_p$ that minimize the sum of squared residuals:
+
+$$\sum_{j=1}^p(y_j - \beta_j)^2$$
+
+where $y_j$ is the $j$th response value.
+
+The least squares solution in this case is simply:
+
+$$\hat{\beta}_j = y_j$$
+
+meaning that each coefficient estimate is equal to its corresponding response value. Let's calculate the OLS estimates:
+
+```{r}
+ols_model <- lm(y ~ 0 + X)  # fit OLS model without intercept
+beta_ols <- as.vector(coef(ols_model))
+beta_ols
+```
+
+Note that the fit here is perfect, i.e., $R^2 = 1$. This is expected given the simple structure of the data and the fact that the number of observations equals the number of predictors.
+
+## Ridge estimation
+
+Ridge regression, in this context, involves finding the coefficients $\beta_1, \ldots, \beta_p$ that minimize:
+
+$$\sum_{j=1}^p(y_j - \beta_j)^2 + \lambda \sum_{j=1}^p \beta_j^2$$
+
+where $\lambda$ is the regularization parameter.
+
+The ridge regression estimates in this case are given by:
+
+```{r}
+lambda_ridge <- 0.1
+ridge_model  <- glmnet(X, y, alpha = 0, lambda = lambda_ridge, standardize = FALSE, intercept = FALSE)
+beta_ridge   <- as.vector(coef(ridge_model))[-1]
+round(beta_ridge, 1)
+```
+
+The ridge estimates shrink each coefficient by the same proportion, regardless of the value of the response. This is a key property of ridge regression, which helps to reduce the variance of the estimates and improve the model's generalization performance.
+
+## Lasso estimation
+
+The lasso involves finding the coefficients that minimize:
+
+$$\sum_{j=1}^p(y_j - \beta_j)^2 + \lambda \sum_{j=1}^p|\beta_j|$$
+
+where $|\beta_j|$ denotes the absolute value of $\beta_j$.
+
+The lasso estimates in this case are given by:
+
+```{r}
+lambda_lasso <- 0.1
+lasso_model  <- glmnet(X, y, alpha = 1, lambda = lambda_lasso, standardize = FALSE, intercept = FALSE)
+beta_lasso   <- as.vector(coef(lasso_model))[-1]
+round(beta_lasso, 1)
+```
+
+The lasso estimates can shrink some coefficients to exactly zero, effectively performing feature selection. This property of the lasso makes it useful when dealing with high-dimensional data or when feature selection is desired.
+
+## Plot results
+
+Formally, in this setting, the ridge regression estimates take the form:
+
+$$\hat{\beta}_j^R = \frac{y_j}{1 + \lambda}$$
+
+meaning that each coefficient is shrunk by the same proportion.
+
+The lasso estimates, however, take the form:
+
+$$
+\hat{\beta}_j^L =
+\begin{cases}
+y_j - \lambda/2 & \text{if } y_j > \lambda/2 \\
+y_j + \lambda/2 & \text{if } y_j < -\lambda/2 \\
+0 & \text{if } |y_j| \leq \lambda/2
+\end{cases}
+$$
+
+This means that the lasso shrinks each coefficient towards zero by a constant amount ($\lambda/2$), and coefficients with absolute values less than or equal to $\lambda/2$ are shrunk to exactly zero. This type of shrinkage is known as soft-thresholding.
+
+Let's visualize the behavior of ridge regression and the lasso in this simplified setting.
+
+```{r}
+df_lasso <- tibble(
+  y = y, beta_ols = beta_ols, beta_lasso = beta_lasso
+)
+
+p_lasso <- 
+  df_lasso |> 
+  ggplot(aes(x = y, y = beta_ols)) +
+  geom_hline(yintercept = 0) +
+  geom_line(linetype = "dashed", color = "grey") +
+  geom_line(aes(y = beta_lasso), color = "red") +
+  theme_light() +
+  labs(
+    title = "lasso",
+    x = "y",
+    y = "beta"
+  )
+```
+
+```{r}
+df_ridge <- tibble(
+  y = y, beta_ols = beta_ols, beta_ridge = beta_ridge
+)
+
+p_ridge <- 
+  df_ridge |> 
+  ggplot(aes(x = y, y = beta_ols)) +
+  geom_hline(yintercept = 0) +
+  geom_line(linetype = "dashed", color = "grey") +
+  geom_line(aes(y = beta_ridge), color = "red") +
+  theme_light() +
+  labs(
+    title = "ridge",
+    x = "y",
+    y = "beta"
+  )
+```
+
+```{r}
+plot_grid(p_ridge, p_lasso)
+```
+
+The key difference between ridge regression and the lasso is the way they shrink the coefficients. Ridge regression shrinks all coefficients by the same proportion (left panel, in red), while the lasso can shrink some coefficients to exactly zero, effectively performing feature selection (right panel, in red). This property of the lasso makes it useful when dealing with high-dimensional data or when feature selection is desired.
+
+## Subset selection
+
+Another approach to feature selection is subset selection, where we consider all possible subsets of predictors and select the best subset based on some criterion. For comparison, let's perform subset selection using the `regsubsets` function from the `leaps` package. We limit the number of predictors to 10 to keep the computation feasible.
+
+```{r}
+subset <- regsubsets(x = X, y = y, intercept = FALSE, nvmax = 10)
+summary(subset)
+```
+
+As the output shows, the best subset selection method selects the subset of predictors that minimizes the residual sum of squares (RSS) for each subset size. Note that the selection is *exhaustive*, i.e., it considers all possible subsets of predictors for each subset size.
+
+## References
+
+Hastie, T., Tibshirani, R., & Wainwright, M. (2015). Statistical learning with sparsity: The lasso and generalizations. CRC Press.
