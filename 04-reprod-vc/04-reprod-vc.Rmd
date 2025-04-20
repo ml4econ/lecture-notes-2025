@@ -650,7 +650,7 @@ name: practice
 ---
 class: .title-slide-final, center, inverse, middle
 
-# `slides %>% end()`
+# `slides |> end()`
 
 
-[<i class="fa fa-github"></i> Source code](https://github.com/ml4econ/lecture-notes-2021/tree/master/03-reprod-vc)  
+[<i class="fa fa-github"></i> Source code](https://github.com/ml4econ/lecture-notes-2025/tree/master/04-reprod-vc)  
