@@ -72,8 +72,8 @@ In this lecture, we will discuss the machine learning workflow, including data p
 
 4. *Reproducibility*  
 In this lecture, we will discuss the importance of reproducibility in machine learning and how to achieve it using version control and containerization.  
-   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/04-reprod-vs/04-reprod-vs.html) |
-   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/04-reprod-vs/04-reprod-vs.pdf)                                     
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/04-reprod-vc/04-reprod-vc.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/04-reprod-vc/04-reprod-vc.pdf)                                     
 
 5. *Regression and Regularization*  
 In this lecture, we will cover regression techniques and regularization methods such as Lasso and Ridge regression.  
