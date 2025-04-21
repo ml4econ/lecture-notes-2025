@@ -79,6 +79,12 @@ In this lecture, we will discuss the importance of reproducibility in machine le
 In this lecture, we will cover regression techniques and regularization methods such as Lasso and Ridge regression.  
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-regression-regularization.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-regression-regularization.pdf)
+  5.1 [Prepare browser data](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-prepare-browser-data.html)  
+  5.2 [Ridge and lasso simulation](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-simulations.html)  
+  5.3 [Ridge, lasso, PCR and PLS: A Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-tidymodels-workflow.html)
+  5.4 [Noisy Slope](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-noisy-slope.html)
+  5.5 [Thresholding](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-thresholding.html)
+
 
 6. Classification
 
