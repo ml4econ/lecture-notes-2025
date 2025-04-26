@@ -176,6 +176,8 @@ Given a new unseen `\(x^0\)` and the output above, how would you predict `\(y^0\
 &lt;img src="figs/noisy.png" width="70%" style="display: block; margin: auto;" /&gt;
 
 [Link to notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-noisy-slope.html)
+
+
 ---
 
 # Standard Errors and Prediction Accuracy
@@ -644,7 +646,7 @@ Any penalty involving the `\(\ell_1\)` norm exhibits this behavior.
 
 ---
 
-# Lasso vs. ridge
+# Lasso vs. Ridge
 
 .pull-left[
 
@@ -765,10 +767,27 @@ Best-subset selection eliminates all variables with coefficients smaller than th
 
 Ridge regression shrinks coefficients proportionally, while lasso regression shrinks them by a similar amount, setting sufficiently small coefficients to zero. This type of shrinkage in lasso is referred to as "soft-thresholding."
 
-&lt;img src="figs/soft.png" width="65%" style="display: block; margin: auto;" /&gt;
-Source: [James et al. (2017) ](http://faculty.marshall.usc.edu/gareth-james/ISL/index.html) 
+&lt;img src="figs/soft.png" width="60%" style="display: block; margin: auto;" /&gt;
+Source: [James et al. (2017). 
+[Link to replication notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-shrinkage-selection-intuition.html) ](http://faculty.marshall.usc.edu/gareth-james/ISL/index.html) 
 
 __Main takeaway:__ Ridge and lasso coefficients should not be directly used in subsequent econometric analysis, unless you adopt a Bayesian approach.
+
+
+---
+# Shrinkage and Selection: When and How?
+
+#### Independent Features
+
+- **Lasso** performs feature selection by setting some coefficients to zero, while others are shrunk toward zero.
+- **Ridge** keeps all features but shrinks coefficients toward zero
+- Lasso path shows more sparsity compared to Ridge
+
+#### Dependent (Correlated) Features
+
+- With correlated features, Lasso tends to select one feature from correlated groups ("winner takes all")
+- Ridge handles correlation by distributing coefficient weight among related features
+- Lasso becomes less sparse with dependent features
 
 
 ---
