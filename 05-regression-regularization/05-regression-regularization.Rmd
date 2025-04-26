@@ -179,6 +179,8 @@ knitr::include_graphics("figs/noisy.png")
 ```
 
 [Link to notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-noisy-slope.html)
+
+
 ---
 
 # Standard Errors and Prediction Accuracy
