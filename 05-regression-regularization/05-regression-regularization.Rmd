@@ -172,6 +172,14 @@ Given a new unseen $x^0$ and the output above, how would you predict $y^0$?
 ]
 
 ---
+# Simulating "Noisy Slope"
+
+```{r, echo=FALSE, out.width = "70%", fig.align='center'}
+knitr::include_graphics("figs/noisy.png")
+```
+
+[Link to notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-noisy-slope.html)
+---
 
 # Standard Errors and Prediction Accuracy
 

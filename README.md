@@ -83,8 +83,7 @@ In this lecture, we will cover regression techniques and regularization methods 
   5.2 [Ridge and lasso simulation](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-simulations.html)  
   5.3 [Ridge, lasso, PCR and PLS: A Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-tidymodels-workflow.html)  
   5.4 [Noisy Slope](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-noisy-slope.html)  
-  5.5 [Thresholding](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-thresholding.html)  
-
+  5.6 [Shirkage and seection intuition](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-shrinkage-selection-intuition.html)
 
 6. Classification
 
