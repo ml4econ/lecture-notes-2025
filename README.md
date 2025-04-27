@@ -76,7 +76,7 @@ In this lecture, we will discuss the importance of reproducibility in machine le
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/04-reprod-vc/04-reprod-vc.pdf)                                     
 
 5. *Regression and Regularization*  
-In this lecture, we will cover regression techniques and regularization methods such as Lasso and Ridge regression.  
+In this lecture, we will cover regression techniques and regularization methods such as Lasso and Ridge regression, PCR and PLS.  
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-regression-regularization.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-regression-regularization.pdf)  
   5.1 [Prepare browser data](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-prepare-browser-data.html)  
@@ -86,7 +86,7 @@ In this lecture, we will cover regression techniques and regularization methods 
   5.5 [Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-tidymodels-workflow.html)
   
 6. *Classification*
-In this lecture, we will cover classification techniques such as logistic regression, decision trees, and support vector machines.  
+In this lecture, we will cover classification techniques such as logistic regression.
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.pdf)  
   
