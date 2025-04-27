@@ -18,14 +18,14 @@ abstract: >
 
 # Load packages
 
-Load packages 
+Loading essential packages for our regularized regression analysis. The tidyverse provides data manipulation functions, tidymodels offers a unified framework for modeling, and plsmod enables partial least squares regression.
 ```{r pacman, message=FALSE, warning=FALSE, eval=TRUE}
 library(tidyverse)   # for data wrangling and visualization
 library(tidymodels)  # for data modeling
 library(plsmod)      # for estimating pls regression
 library(here)         # for referencing files and folders
 ```
-
+The following code installs `BiocManager` and the `mixOmics` package, which will be required later for PLS regression. The `BiocManager` provides access to Bioconductor packages.
 ```{r, eval=FALSE}
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -33,14 +33,14 @@ if (!require("BiocManager", quietly = TRUE))
 BiocManager::install("mixOmics")
 ```
 
-and set seed for replication
+Setting a seed ensures reproducibility of our results. This is crucial for random processes like data splitting and cross-validation.
 ```{r}
 set.seed(1203)
 ```
 
 # Read data
 
-Read the `browser` dataset from the `data` folder. 
+Loading the `browser` dataset which contains information about user behavior and spending patterns. We use the `here()` function for path-independent file referencing.
 ```{r}
 browser <- here("05-regression-regularization/data","browser-sample.csv") %>% 
   read_csv()
@@ -48,7 +48,7 @@ browser <- here("05-regression-regularization/data","browser-sample.csv") %>%
 
 # Sample spliting
 
-Split the data to training and test sets, and the training set to 10 folds for cross-validation.
+Dividing our data into training (75%) and test (25%) sets. The training set is further split into 5 cross-validation folds to properly tune model hyperparameters without overfitting.
 ```{r}
 browser_split <- browser %>% 
   initial_split(prop = 0.75)
@@ -71,14 +71,14 @@ lm_spec <- linear_reg() %>%
   set_engine("glmnet") %>% 
   set_mode("regression")
 ```
-
+Creating a recipe that describes our preprocessing steps. We center and scale all predictors (standardization) and remove zero-variance predictors that provide no information.
 ```{r}
 browser_rec <- recipe(log_spend ~ .,data = browser_train) %>% 
   step_center(all_predictors()) %>% 
   step_scale(all_predictors()) %>% 
   step_zv(all_predictors())
 ```
-
+Combining our model specification and preprocessing recipe into a workflow, which provides a unified interface for model fitting and prediction.
 ```{r}
 lm_wfl <- workflow() %>% 
   add_recipe(browser_rec) %>% 
@@ -86,7 +86,7 @@ lm_wfl <- workflow() %>%
 ```
 
 ## Tune hyperparameter
-
+Performing cross-validation to tune the penalty parameter $\lambda$. This evaluates each candidate $\lambda$ value across all folds to find the optimal regularization strength.
 ```{r}
 lm_results <- lm_wfl %>% 
   tune_grid(
@@ -94,7 +94,7 @@ lm_results <- lm_wfl %>%
   )
 ```
 
-show best results
+Displaying the top-performing $\lambda$ values ranked by root mean squared error (RMSE). Lower RMSE indicates better predictive performance.
 ```{r}
 lm_results %>% 
   show_best(metric = "rmse")
@@ -102,7 +102,7 @@ lm_results %>%
 
 ## Set best lambda
 
-Two options: lambda that minimizes RMSE, and the 1 standard error rule of thumb:
+Selecting the optimal $\lambda$ using two common approaches: minimizing RMSE directly, or using the one-standard-error rule which chooses the most parsimonious model within one standard error of the minimum RMSE.
 ```{r}
 lambda_min <- lm_results %>% 
   select_best(metric = "rmse")
@@ -116,16 +116,17 @@ lambda_1se <- lm_results %>%
 ```
 
 ## Evaluate model on the test set
+Finalizing the workflow by updating it with our chosen $\lambda$ value (using the one-standard-error rule). This locks in the tuning parameter for final model fitting.
 ```{r}
 lm_wfl_final <- lm_wfl %>%
   finalize_workflow(lambda_1se)
 ```
-
+Fitting the finalized model to the entire training set and evaluating it on the previously unseen test set to get an unbiased estimate of performance.
 ```{r}
 browser_test_results <- lm_wfl_final %>% 
   last_fit(split = browser_split)
 ```
-
+Extracting and labeling the ridge regression performance metrics for later comparison with other models.
 ```{r}
 ridge_results <- browser_test_results %>% 
   collect_metrics() %>% 
@@ -138,14 +139,14 @@ ridge_results <- browser_test_results %>%
 
 ## Specify model recipe and workflow
 
-Specify a linear model. Note that in this case, there are no tuning parameters.
+Defining a standard linear regression model for PCR. Unlike ridge/lasso, the regularization in PCR comes from dimensionality reduction, not from penalizing coefficients.
 ```{r}
 lm_spec <- linear_reg() %>% 
   set_engine("lm") %>% 
   set_mode("regression")
 ```
 
-Note how the number of PCs is determined inside the recipe object.
+Creating a recipe that includes principal component analysis (PCA) transformation. The number of principal components to retain is a tuning parameter that controls model complexity.
 ```{r}
 browser_rec <- recipe(log_spend ~ ., data = browser_train) %>% 
   step_center(all_predictors()) %>% 
@@ -153,7 +154,7 @@ browser_rec <- recipe(log_spend ~ ., data = browser_train) %>%
   step_zv(all_predictors()) %>% 
   step_pca(all_predictors(), num_comp = tune())
 ```
-
+Combining the PCR preprocessing recipe and model specification into a unified workflow.
 ```{r}
 lm_wfl <- workflow() %>% 
   add_recipe(browser_rec) %>% 
@@ -161,9 +162,12 @@ lm_wfl <- workflow() %>%
 ```
 
 ## Tune hyperparameter
+Creating a grid of potential values for the number of principal components to evaluate. We'll consider using 1 to 10 components.
+
 ```{r}
 num_comp_grid <- expand_grid(num_comp = 1:10)
 ```
+Performing cross-validation to determine the optimal number of principal components that minimizes prediction error.
 
 ```{r}
 lm_results <- lm_wfl %>% 
@@ -173,7 +177,7 @@ lm_results <- lm_wfl %>%
   )
 ```
 
-show best results
+Displaying the top-performing configurations ranked by RMSE to see how model performance varies with the number of components.
 ```{r}
 lm_results %>% 
   show_best(metric = "rmse")
@@ -181,7 +185,7 @@ lm_results %>%
 
 ## Set best number of components
 
-Two options: `num_comp` that minimizes RMSE, and the 1 standard error rule of thumb:
+Selecting the optimal number of components using two approaches: minimizing RMSE directly, or using the one-standard-error rule which chooses the simplest model (fewer components) within one standard error of the minimum.
 ```{r}
 num_comp_min <- lm_results %>% 
   select_best(metric = "rmse")
@@ -195,15 +199,19 @@ num_comp_1se <- lm_results %>%
 ```
 
 ## Evaluate model on the test set
+Finalizing the PCR workflow with the selected number of principal components based on the one-standard-error rule.
+
 ```{r}
 lm_wfl_final <- lm_wfl %>%
   finalize_workflow(num_comp_1se)
 ```
+Fitting the finalized PCR model to the entire training set and evaluating it on the test set to get an unbiased performance estimate.
 
 ```{r}
 browser_test_results <- lm_wfl_final %>% 
   last_fit(split = browser_split)
 ```
+Extracting and labeling the PCR performance metrics for later comparison with other models.
 
 ```{r}
 pcr_results <- browser_test_results %>% 
@@ -214,7 +222,7 @@ pcr_results <- browser_test_results %>%
 
 # PLS
 
-To run tidymodels' `plsmod` we'll need to make sure we have installed the `{mixOmics}` package.
+Installing the mixOmics package required for PLS regression. `BiocManager` is used because `mixOmics` is part of the Bioconductor project, which focuses on tools for analyzing genomic data.
 
 ```{r, eval=FALSE}
 install.packages("BiocManager")
@@ -223,13 +231,14 @@ BiocManager::install("mixOmics")
 
 ## Specify model recipe and workflow
 
-Specify `plsmod`
+Creating a partial least squares regression model specification. PLS, like PCR, uses dimension reduction but creates components that are specifically designed to maximize correlation with the response variable.
 ```{r}
 pls_spec <- pls() %>% 
   set_args(num_comp = tune()) %>% 
   set_engine("mixOmics") %>% 
   set_mode("regression")
 ```
+Setting up a recipe for data preprocessing without PCA transformation, as PLS performs its own dimension reduction internally.
 
 ```{r}
 browser_rec <- recipe(log_spend ~ ., data = browser_train) %>% 
@@ -237,6 +246,7 @@ browser_rec <- recipe(log_spend ~ ., data = browser_train) %>%
   step_scale(all_predictors()) %>% 
   step_zv(all_predictors())
 ```
+Combining the PLS model specification and preprocessing recipe into a unified workflow.
 
 ```{r}
 pls_wfl <- workflow() %>% 
@@ -245,9 +255,12 @@ pls_wfl <- workflow() %>%
 ```
 
 ## Tune hyperparameter
+Creating a grid of potential values for the number of PLS components to evaluate. As with PCR, we'll consider using 1 to 10 components.
+
 ```{r}
 num_comp_grid <- expand_grid(num_comp = 1:10)
 ```
+Performing cross-validation to determine the optimal number of PLS components that minimizes prediction error.
 
 ```{r}
 pls_results <- pls_wfl %>% 
@@ -257,7 +270,7 @@ pls_results <- pls_wfl %>%
   )
 ```
 
-show best results
+Displaying the top-performing configurations to see how model performance varies with the number of PLS components.
 ```{r}
 pls_results %>% 
   show_best(metric = "rmse")
@@ -265,7 +278,7 @@ pls_results %>%
 
 ## Set best number of components
 
-Two options: `num_comp` that minimizes RMSE, and the 1 standard error rule of thumb:
+Selecting the optimal number of PLS components using the same two approaches as before: minimizing RMSE directly, or using the one-standard-error rule.
 ```{r}
 num_comp_min <- pls_results %>% 
   select_best(metric = "rmse")
@@ -278,15 +291,19 @@ num_comp_1se <- pls_results %>%
 ```
 
 ## Evaluate model on the test set
+Finalizing the PLS workflow with the selected number of components based on the one-standard-error rule.
+
 ```{r}
 pls_wfl_final <- pls_wfl %>%
   finalize_workflow(num_comp_1se)
 ```
+Fitting the finalized PLS model to the entire training set and evaluating it on the test set.
 
 ```{r}
 browser_test_results <- pls_wfl_final %>% 
   last_fit(split = browser_split)
 ```
+Extracting and labeling the PLS performance metrics for later comparison.
 
 ```{r}
 pls_results <- browser_test_results %>% 
@@ -297,6 +314,7 @@ pls_results <- browser_test_results %>%
 
 
 # Summary
+Combining and comparing the test set RMSE results from all three regularization methods to determine which approach performs best for this dataset.
 
 ```{r}
 bind_rows(

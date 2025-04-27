@@ -1398,7 +1398,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -1667,7 +1667,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">Ridge, Lasso, PCR, and PLS</h1>
 <h3 class="subtitle">A Tidymodels Workflow</h3>
 <h4 class="author">Itamar Caspi</h4>
-<h4 class="date">(updated: 2024-06-30)</h4>
+<h4 class="date">(updated: 2025-04-27)</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>This document demonstrates a tidymodels workflow for ridge, lasso,
@@ -1683,22 +1683,32 @@ test set.</p>
 
 <div id="load-packages" class="section level1">
 <h1>Load packages</h1>
-<p>Load packages</p>
+<p>Loading essential packages for our regularized regression analysis.
+The tidyverse provides data manipulation functions, tidymodels offers a
+unified framework for modeling, and plsmod enables partial least squares
+regression.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)   <span class="co"># for data wrangling and visualization</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(tidymodels)  <span class="co"># for data modeling</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(plsmod)      <span class="co"># for estimating pls regression</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(here)         <span class="co"># for referencing files and folders</span></span></code></pre></div>
+<p>The following code installs <code>BiocManager</code> and the
+<code>mixOmics</code> package, which will be required later for PLS
+regression. The <code>BiocManager</code> provides access to Bioconductor
+packages.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&quot;BiocManager&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    <span class="fu">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;mixOmics&quot;</span>)</span></code></pre></div>
-<p>and set seed for replication</p>
+<p>Setting a seed ensures reproducibility of our results. This is
+crucial for random processes like data splitting and
+cross-validation.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1203</span>)</span></code></pre></div>
 </div>
 <div id="read-data" class="section level1">
 <h1>Read data</h1>
-<p>Read the <code>browser</code> dataset from the <code>data</code>
-folder.</p>
+<p>Loading the <code>browser</code> dataset which contains information
+about user behavior and spending patterns. We use the
+<code>here()</code> function for path-independent file referencing.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>browser <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">&quot;05-regression-regularization/data&quot;</span>,<span class="st">&quot;browser-sample.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">read_csv</span>()</span></code></pre></div>
 <pre><code>## Rows: 1200 Columns: 201
@@ -1711,8 +1721,9 @@ folder.</p>
 </div>
 <div id="sample-spliting" class="section level1">
 <h1>Sample spliting</h1>
-<p>Split the data to training and test sets, and the training set to 10
-folds for cross-validation.</p>
+<p>Dividing our data into training (75%) and test (25%) sets. The
+training set is further split into 5 cross-validation folds to properly
+tune model hyperparameters without overfitting.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>browser_split <span class="ot">&lt;-</span> browser <span class="sc">%&gt;%</span> </span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">initial_split</span>(<span class="at">prop =</span> <span class="fl">0.75</span>)</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
@@ -1732,37 +1743,50 @@ for lasso. <code>penalty</code> is <span class="math inline">\(\lambda\)</span>.
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">set_args</span>(<span class="at">penalty =</span> <span class="fu">tune</span>(), <span class="at">mixture =</span> <span class="dv">0</span>, <span class="at">nlambda =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span></code></pre></div>
+<p>Creating a recipe that describes our preprocessing steps. We center
+and scale all predictors (standardization) and remove zero-variance
+predictors that provide no information.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>browser_rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>(log_spend <span class="sc">~</span> .,<span class="at">data =</span> browser_train) <span class="sc">%&gt;%</span> </span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">step_center</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">step_scale</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>())</span></code></pre></div>
+<p>Combining our model specification and preprocessing recipe into a
+workflow, which provides a unified interface for model fitting and
+prediction.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>lm_wfl <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">add_recipe</span>(browser_rec) <span class="sc">%&gt;%</span> </span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">add_model</span>(lm_spec)</span></code></pre></div>
 </div>
 <div id="tune-hyperparameter" class="section level2">
 <h2>Tune hyperparameter</h2>
+<p>Performing cross-validation to tune the penalty parameter <span class="math inline">\(\lambda\)</span>. This evaluates each candidate
+<span class="math inline">\(\lambda\)</span> value across all folds to
+find the optimal regularization strength.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>lm_results <span class="ot">&lt;-</span> lm_wfl <span class="sc">%&gt;%</span> </span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">tune_grid</span>(</span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>    <span class="at">resamples =</span> browser_folds</span>
 <span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  )</span></code></pre></div>
-<pre><code>## Warning: package &#39;glmnet&#39; was built under R version 4.3.3</code></pre>
-<p>show best results</p>
+<pre><code>## Warning: package &#39;glmnet&#39; was built under R version 4.4.3</code></pre>
+<p>Displaying the top-performing <span class="math inline">\(\lambda\)</span> values ranked by root mean
+squared error (RMSE). Lower RMSE indicates better predictive
+performance.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>lm_results <span class="sc">%&gt;%</span> </span>
 <span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">show_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 7
 ##    penalty .metric .estimator  mean     n std_err .config              
 ##      &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;                
-## 1 2.97e- 1 rmse    standard    2.06     5  0.0868 Preprocessor1_Model10
-## 2 2.08e- 2 rmse    standard    2.31     5  0.109  Preprocessor1_Model09
-## 3 4.57e-10 rmse    standard    2.31     5  0.109  Preprocessor1_Model01
-## 4 1.34e- 9 rmse    standard    2.31     5  0.109  Preprocessor1_Model02
-## 5 4.02e- 8 rmse    standard    2.31     5  0.109  Preprocessor1_Model03</code></pre>
+## 1 9.29e- 1 rmse    standard    1.86     5  0.0589 Preprocessor1_Model10
+## 2 8.86e- 2 rmse    standard    2.22     5  0.102  Preprocessor1_Model09
+## 3 1.37e-10 rmse    standard    2.31     5  0.109  Preprocessor1_Model01
+## 4 2.35e- 9 rmse    standard    2.31     5  0.109  Preprocessor1_Model02
+## 5 5.45e- 8 rmse    standard    2.31     5  0.109  Preprocessor1_Model03</code></pre>
 </div>
 <div id="set-best-lambda" class="section level2">
 <h2>Set best lambda</h2>
-<p>Two options: lambda that minimizes RMSE, and the 1 standard error
-rule of thumb:</p>
+<p>Selecting the optimal <span class="math inline">\(\lambda\)</span>
+using two common approaches: minimizing RMSE directly, or using the
+one-standard-error rule which chooses the most parsimonious model within
+one standard error of the minimum RMSE.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>lambda_min <span class="ot">&lt;-</span> lm_results <span class="sc">%&gt;%</span> </span>
 <span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">select_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span>
 <span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
@@ -1775,10 +1799,18 @@ rule of thumb:</p>
 </div>
 <div id="evaluate-model-on-the-test-set" class="section level2">
 <h2>Evaluate model on the test set</h2>
+<p>Finalizing the workflow by updating it with our chosen <span class="math inline">\(\lambda\)</span> value (using the
+one-standard-error rule). This locks in the tuning parameter for final
+model fitting.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>lm_wfl_final <span class="ot">&lt;-</span> lm_wfl <span class="sc">%&gt;%</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(lambda_1se)</span></code></pre></div>
+<p>Fitting the finalized model to the entire training set and evaluating
+it on the previously unseen test set to get an unbiased estimate of
+performance.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>browser_test_results <span class="ot">&lt;-</span> lm_wfl_final <span class="sc">%&gt;%</span> </span>
 <span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  <span class="fu">last_fit</span>(<span class="at">split =</span> browser_split)</span></code></pre></div>
+<p>Extracting and labeling the ridge regression performance metrics for
+later comparison with other models.</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>ridge_results <span class="ot">&lt;-</span> browser_test_results <span class="sc">%&gt;%</span> </span>
 <span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="fu">filter</span>(.metric <span class="sc">==</span> <span class="st">&quot;rmse&quot;</span>) <span class="sc">%&gt;%</span> </span>
@@ -1789,31 +1821,40 @@ rule of thumb:</p>
 <h1>PCR</h1>
 <div id="specify-model-recipe-and-workflow-1" class="section level2">
 <h2>Specify model recipe and workflow</h2>
-<p>Specify a linear model. Note that in this case, there are no tuning
-parameters.</p>
+<p>Defining a standard linear regression model for PCR. Unlike
+ridge/lasso, the regularization in PCR comes from dimensionality
+reduction, not from penalizing coefficients.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>lm_spec <span class="ot">&lt;-</span> <span class="fu">linear_reg</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">&quot;lm&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span></code></pre></div>
-<p>Note how the number of PCs is determined inside the recipe
-object.</p>
+<p>Creating a recipe that includes principal component analysis (PCA)
+transformation. The number of principal components to retain is a tuning
+parameter that controls model complexity.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>browser_rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>(log_spend <span class="sc">~</span> ., <span class="at">data =</span> browser_train) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="fu">step_center</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">step_scale</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>  <span class="fu">step_pca</span>(<span class="fu">all_predictors</span>(), <span class="at">num_comp =</span> <span class="fu">tune</span>())</span></code></pre></div>
+<p>Combining the PCR preprocessing recipe and model specification into a
+unified workflow.</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>lm_wfl <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  <span class="fu">add_recipe</span>(browser_rec) <span class="sc">%&gt;%</span> </span>
 <span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="fu">add_model</span>(lm_spec)</span></code></pre></div>
 </div>
 <div id="tune-hyperparameter-1" class="section level2">
 <h2>Tune hyperparameter</h2>
+<p>Creating a grid of potential values for the number of principal
+components to evaluate. We’ll consider using 1 to 10 components.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>num_comp_grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">num_comp =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span></code></pre></div>
+<p>Performing cross-validation to determine the optimal number of
+principal components that minimizes prediction error.</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>lm_results <span class="ot">&lt;-</span> lm_wfl <span class="sc">%&gt;%</span> </span>
 <span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  <span class="fu">tune_grid</span>(</span>
 <span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>    <span class="at">resamples =</span> browser_folds,</span>
 <span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>    <span class="at">grid =</span> num_comp_grid</span>
 <span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>  )</span></code></pre></div>
-<p>show best results</p>
+<p>Displaying the top-performing configurations ranked by RMSE to see
+how model performance varies with the number of components.</p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>lm_results <span class="sc">%&gt;%</span> </span>
 <span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>  <span class="fu">show_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 7
@@ -1827,8 +1868,10 @@ object.</p>
 </div>
 <div id="set-best-number-of-components" class="section level2">
 <h2>Set best number of components</h2>
-<p>Two options: <code>num_comp</code> that minimizes RMSE, and the 1
-standard error rule of thumb:</p>
+<p>Selecting the optimal number of components using two approaches:
+minimizing RMSE directly, or using the one-standard-error rule which
+chooses the simplest model (fewer components) within one standard error
+of the minimum.</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>num_comp_min <span class="ot">&lt;-</span> lm_results <span class="sc">%&gt;%</span> </span>
 <span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="fu">select_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span>
 <span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a></span>
@@ -1841,10 +1884,17 @@ standard error rule of thumb:</p>
 </div>
 <div id="evaluate-model-on-the-test-set-1" class="section level2">
 <h2>Evaluate model on the test set</h2>
+<p>Finalizing the PCR workflow with the selected number of principal
+components based on the one-standard-error rule.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>lm_wfl_final <span class="ot">&lt;-</span> lm_wfl <span class="sc">%&gt;%</span></span>
 <span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(num_comp_1se)</span></code></pre></div>
+<p>Fitting the finalized PCR model to the entire training set and
+evaluating it on the test set to get an unbiased performance
+estimate.</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>browser_test_results <span class="ot">&lt;-</span> lm_wfl_final <span class="sc">%&gt;%</span> </span>
 <span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>  <span class="fu">last_fit</span>(<span class="at">split =</span> browser_split)</span></code></pre></div>
+<p>Extracting and labeling the PCR performance metrics for later
+comparison with other models.</p>
 <div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>pcr_results <span class="ot">&lt;-</span> browser_test_results <span class="sc">%&gt;%</span> </span>
 <span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>  <span class="fu">filter</span>(.metric <span class="sc">==</span> <span class="st">&quot;rmse&quot;</span>) <span class="sc">%&gt;%</span> </span>
@@ -1853,34 +1903,49 @@ standard error rule of thumb:</p>
 </div>
 <div id="pls" class="section level1">
 <h1>PLS</h1>
-<p>To run tidymodels’ <code>plsmod</code> we’ll need to make sure we
-have installed the <code>{mixOmics}</code> package.</p>
+<p>Installing the mixOmics package required for PLS regression.
+<code>BiocManager</code> is used because <code>mixOmics</code> is part
+of the Bioconductor project, which focuses on tools for analyzing
+genomic data.</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;BiocManager&quot;</span>)</span>
 <span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">&quot;mixOmics&quot;</span>)</span></code></pre></div>
 <div id="specify-model-recipe-and-workflow-2" class="section level2">
 <h2>Specify model recipe and workflow</h2>
-<p>Specify <code>plsmod</code></p>
+<p>Creating a partial least squares regression model specification. PLS,
+like PCR, uses dimension reduction but creates components that are
+specifically designed to maximize correlation with the response
+variable.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>pls_spec <span class="ot">&lt;-</span> <span class="fu">pls</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a>  <span class="fu">set_args</span>(<span class="at">num_comp =</span> <span class="fu">tune</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb30-3"><a href="#cb30-3" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">&quot;mixOmics&quot;</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb30-4"><a href="#cb30-4" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">&quot;regression&quot;</span>)</span></code></pre></div>
+<p>Setting up a recipe for data preprocessing without PCA
+transformation, as PLS performs its own dimension reduction
+internally.</p>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>browser_rec <span class="ot">&lt;-</span> <span class="fu">recipe</span>(log_spend <span class="sc">~</span> ., <span class="at">data =</span> browser_train) <span class="sc">%&gt;%</span> </span>
 <span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="fu">step_center</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>  <span class="fu">step_scale</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
 <span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>())</span></code></pre></div>
+<p>Combining the PLS model specification and preprocessing recipe into a
+unified workflow.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>pls_wfl <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>  <span class="fu">add_recipe</span>(browser_rec) <span class="sc">%&gt;%</span> </span>
 <span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a>  <span class="fu">add_model</span>(pls_spec)</span></code></pre></div>
 </div>
 <div id="tune-hyperparameter-2" class="section level2">
 <h2>Tune hyperparameter</h2>
+<p>Creating a grid of potential values for the number of PLS components
+to evaluate. As with PCR, we’ll consider using 1 to 10 components.</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>num_comp_grid <span class="ot">&lt;-</span> <span class="fu">expand_grid</span>(<span class="at">num_comp =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span></code></pre></div>
+<p>Performing cross-validation to determine the optimal number of PLS
+components that minimizes prediction error.</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>pls_results <span class="ot">&lt;-</span> pls_wfl <span class="sc">%&gt;%</span> </span>
 <span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  <span class="fu">tune_grid</span>(</span>
 <span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>    <span class="at">resamples =</span> browser_folds,</span>
 <span id="cb34-4"><a href="#cb34-4" tabindex="-1"></a>    <span class="at">grid =</span> num_comp_grid</span>
 <span id="cb34-5"><a href="#cb34-5" tabindex="-1"></a>  )</span></code></pre></div>
-<p>show best results</p>
+<p>Displaying the top-performing configurations to see how model
+performance varies with the number of PLS components.</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>pls_results <span class="sc">%&gt;%</span> </span>
 <span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>  <span class="fu">show_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 7
@@ -1894,8 +1959,9 @@ have installed the <code>{mixOmics}</code> package.</p>
 </div>
 <div id="set-best-number-of-components-1" class="section level2">
 <h2>Set best number of components</h2>
-<p>Two options: <code>num_comp</code> that minimizes RMSE, and the 1
-standard error rule of thumb:</p>
+<p>Selecting the optimal number of PLS components using the same two
+approaches as before: minimizing RMSE directly, or using the
+one-standard-error rule.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a>num_comp_min <span class="ot">&lt;-</span> pls_results <span class="sc">%&gt;%</span> </span>
 <span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>  <span class="fu">select_best</span>(<span class="at">metric =</span> <span class="st">&quot;rmse&quot;</span>)</span>
 <span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a></span>
@@ -1907,10 +1973,16 @@ standard error rule of thumb:</p>
 </div>
 <div id="evaluate-model-on-the-test-set-2" class="section level2">
 <h2>Evaluate model on the test set</h2>
+<p>Finalizing the PLS workflow with the selected number of components
+based on the one-standard-error rule.</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a>pls_wfl_final <span class="ot">&lt;-</span> pls_wfl <span class="sc">%&gt;%</span></span>
 <span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(num_comp_1se)</span></code></pre></div>
+<p>Fitting the finalized PLS model to the entire training set and
+evaluating it on the test set.</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>browser_test_results <span class="ot">&lt;-</span> pls_wfl_final <span class="sc">%&gt;%</span> </span>
 <span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>  <span class="fu">last_fit</span>(<span class="at">split =</span> browser_split)</span></code></pre></div>
+<p>Extracting and labeling the PLS performance metrics for later
+comparison.</p>
 <div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>pls_results <span class="ot">&lt;-</span> browser_test_results <span class="sc">%&gt;%</span> </span>
 <span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>  <span class="fu">filter</span>(.metric <span class="sc">==</span> <span class="st">&quot;rmse&quot;</span>) <span class="sc">%&gt;%</span> </span>
@@ -1919,6 +1991,9 @@ standard error rule of thumb:</p>
 </div>
 <div id="summary" class="section level1">
 <h1>Summary</h1>
+<p>Combining and comparing the test set RMSE results from all three
+regularization methods to determine which approach performs best for
+this dataset.</p>
 <div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">bind_rows</span>(</span>
 <span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>  ridge_results,</span>
 <span id="cb41-3"><a href="#cb41-3" tabindex="-1"></a>  pcr_results,</span>
@@ -1929,7 +2004,7 @@ standard error rule of thumb:</p>
 ##   .metric .estimator .estimate .config              method
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;                &lt;chr&gt; 
 ## 1 rmse    standard        2.15 Preprocessor1_Model1 pcr   
-## 2 rmse    standard        4.96 Preprocessor1_Model1 ridge 
+## 2 rmse    standard        4.89 Preprocessor1_Model1 ridge 
 ## 3 rmse    standard        5.36 Preprocessor1_Model1 pls</code></pre>
 </div>
 

@@ -744,6 +744,8 @@ __Main takeaway:__ Ridge and lasso coefficients should not be directly used in s
 - Ridge handles correlation by distributing coefficient weight among related features
 - Lasso becomes less sparse with dependent features
 
+[Link to notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-simulations.html)
+
 
 ---
 class: title-slide-section-blue, center, middle
@@ -752,47 +754,42 @@ name: dim
 # Dimensionality Reduction
 
 ---
-
 # Alternative Approach
 
-__Main Idea:__ Instead of selecting and/or shrinking $\boldsymbol{\beta}$, aim to find $M$ linear combinations of the $x$ variables, where $M < p$, and use them to predict $y$.
+__Main Idea:__ Instead of selecting and/or shrinking $\boldsymbol{\beta}$, aim to find $M$ linear combinations of the features, where $M < p$,  where $p$ is the total number of original features in the dataset, and use them to predict $y$.
 
 
 ---
-
 # Motivating Example
-
 Consider the following regression model:
 
 $$y_i = \beta_1 x_{i1} + \beta_2 x_{i2} + \varepsilon_i$$
+Next, define a new variable, $f_i$, as a linear combination of $x_{i1}$ and $x_{i2}$:
 
-Next, define a new variable, $f_i$, as a linear combination of $x_{i1}, x_{i2}$:
+$$f_i = \lambda_1 x_{i1} + \lambda_2 x_{i2}$$
 
-$$f_{i} = \lambda_{1} x_{i1} + \lambda_{2} x_{i2}$$
-for some constants $\lambda_1$ and $\lambda_2$. This "factor" represents a lower-dimension version of the feature space (one variable instead of two).
-
+for some constants $\lambda_1$ and $\lambda_2$. This "factor" represents a lower-dimensional version of the feature space (one variable instead of two).
 According to the dimension reduction approach, it is possible that
 
-$$\hat{y}_i = \hat\alpha{f}_{i}$$
+$$\hat{y}_i = \hat{\alpha} f_i$$
+
 (estimated by, for example, OLS) could provide better predictions.
 
 ---
-
 # Relation to Penalized Regression
-
 Since:
 
-$$\hat{y}_i = \hat{\alpha} f_i = \hat{\alpha}\lambda_{1}x_{i1} + \hat{\alpha}\lambda_{2}x_{i2},$$
+$$\hat{y}_i = \hat{\alpha} f_i = \hat{\alpha}\lambda_1 x_{i1} + \hat{\alpha}\lambda_2 x_{i2},$$
+dimension reduction can be viewed as a method that imposes a constraint on the $\beta$'s, i.e.,
 
-dimension reduction can be viewed as a method that puts a constraint on the estimated $\beta$'s, i.e.,
+$$y_i = \beta^*_1 x_{i1} + \beta^*_2 x_{i2} + \varepsilon_i$$
 
-$$y_i = \beta^{*}_1 x_{i1} + \beta_2^* x_{i2} + \varepsilon_i$$
 where
-$$\beta^{*}_1 = \alpha\lambda_{1}\qquad\text{and}\qquad \beta^*_2 = \alpha\lambda_2$$
 
+$$\beta^*_1 = \hat{\alpha}\lambda_1 \quad \text{and} \quad \beta^*_2 = \hat{\alpha}\lambda_2$$
 The main challenges involved are:
-1. How to choose (estimate) $\lambda_1$, $\lambda_2$?
-2. How many factors to use? (In this case, since $p=2$, $M$ can be at most 2.)
+1. How to choose (estimate) $\lambda_1$ and $\lambda_2$?
+2. How many factors to use? (In this case, since $p=2$, the maximum number of factors $M$ can be at most 2.)
 
 ---
 
@@ -961,6 +958,24 @@ pca$rotation[, 1:2] %>% round(1)
 ]
 
 ---
+# What do the first two PCs mean?
+
+- **PC 1 – Engagement ↔ Boredom**  
+  *Negative loadings*: Attentive, Excited, Engaged, Curious, Motivated, Entertaining, Original, Suspenseful  
+  *Positive loadings*: Annoyed, Indifferent, Predictable, Boring  
+  ⟶ Higher PC 1 scores ⇒ **less engaged / more bored**.
+
+- **PC 2 – Arousal / Energy**  
+  *Near-zero or positive*: Attentive, Curious, Entertaining  
+  *Negative loadings*: Comforted, Indifferent, Boring  
+  ⟶ Lower PC 2 scores ⇒ **calmer / lower-energy** reactions.
+
+**Why it matters**  
+1. Collapse 20 survey items into *two* interpretable numbers: **Engagement (PC 1)** and **Arousal (PC 2)**.  
+2. Use these scores for prediction, clustering, or visualisation.
+
+
+---
 # Explained Variance (Scree Plot)
 
 .pull-left[
@@ -987,7 +1002,7 @@ pca %>%
 # Plot data with PCs on axis
 
 .pull-left[
-The code below generates a scatter plot of the survey data using the first two principal components as the x and y axis.
+The code below generates a scatter plot of the survey data using the first two PCs:
 ```{r pca, fig.show='hide'}
 pca %>% 
   autoplot(
@@ -995,8 +1010,12 @@ pca %>%
     colour = "Genre",
     size = 3
   ) +
+  labs(x="Bored (PC1, 39.1%)", 
+       y="Energized (PC2, 14.4%)") +
   theme(legend.position = "top")
 ```
+- Drama/Adventure genres effectively engage audiences; Reality shows less engaging
+- Significant overlap between clusters; individual preferences remain the primary factor
 ]
 .pull-right[
 ```{r, ref.label = 'pca', echo=FALSE}
@@ -1111,7 +1130,7 @@ plot(lasso_pcrx, sub = "PCR-LAsso")
 $$y_i = \phi_{1j} x_{i,j} + \varepsilon_{ij},\qquad \text{for }j=1,\ldots,p$$
 and store $\phi_{11},\ldots,\phi_{1p}$.
 
-(2) Use the estimated vector of coefficients $\hat{\boldsymbol{\phi}_1}=(\phi_{11},\ldots,\phi_{1p})$ to construct a new component $v_{i1}$, which is a linear combination of the $x$s:
+(2) Use the estimated vector of coefficients $\hat{\boldsymbol{\phi}_1}=(\phi_{11},\ldots,\phi_{1p})$ to construct a new component $v_{i1}$, which is a linear combination of the $x$'s:
 $$v_{i1}=\hat{\boldsymbol{\phi}_1}^{\prime}\mathbf{x}_i$$
 (3) Define the residuals from (1) as a new set of features, and proceed to (2) and estimate the second component, $v_{i2}=\hat{\boldsymbol{\phi}_2}^{\prime}\mathbf{x}_i$.
 
@@ -1155,6 +1174,10 @@ _"Despite its simplicity, the linear model has distinct advantages in terms of i
 
 - Despite their advantages, linear models require a lot of bookkeeping (as well as memory and computing power) when it comes to explicitly adding non-linearities, interactions, and other complex features.
  
+---
+# Tidymodels Workflow
+
+[Link to notebook](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-tidymodels-workflow.html)
 
 ---
 class: .title-slide-final, center, inverse, middle

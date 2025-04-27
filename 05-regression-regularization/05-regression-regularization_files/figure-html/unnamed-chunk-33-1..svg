@@ -102,8 +102,8 @@
 <text x='235.02' y='467.15' text-anchor='middle' style='font-size: 16.00px;fill: #4D4D4D; font-family: "Arial";' textLength='22.24px' lengthAdjust='spacingAndGlyphs'>0.0</text>
 <text x='323.58' y='467.15' text-anchor='middle' style='font-size: 16.00px;fill: #4D4D4D; font-family: "Arial";' textLength='22.24px' lengthAdjust='spacingAndGlyphs'>0.2</text>
 <text x='412.14' y='467.15' text-anchor='middle' style='font-size: 16.00px;fill: #4D4D4D; font-family: "Arial";' textLength='22.24px' lengthAdjust='spacingAndGlyphs'>0.4</text>
-<text x='286.47' y='489.83' text-anchor='middle' style='font-size: 20.00px; font-family: "Arial";' textLength='125.63px' lengthAdjust='spacingAndGlyphs'>PC1 (39.13%)</text>
-<text transform='translate(24.28,257.54) rotate(-90)' text-anchor='middle' style='font-size: 20.00px; font-family: "Arial";' textLength='125.63px' lengthAdjust='spacingAndGlyphs'>PC2 (26.27%)</text>
+<text x='286.47' y='489.83' text-anchor='middle' style='font-size: 20.00px; font-family: "Arial";' textLength='178.99px' lengthAdjust='spacingAndGlyphs'>Bored (PC1, 39.1%)</text>
+<text transform='translate(24.28,257.54) rotate(-90)' text-anchor='middle' style='font-size: 20.00px; font-family: "Arial";' textLength='215.68px' lengthAdjust='spacingAndGlyphs'>Energized (PC2, 14.4%)</text>
 <rect x='42.62' y='9.96' width='487.72' height='38.46' style='stroke-width: 1.94; stroke: none; fill: #FFFFFF;' />
 <text x='52.58' y='36.35' style='font-size: 20.00px; font-family: "Arial";' textLength='55.59px' lengthAdjust='spacingAndGlyphs'>Genre</text>
 <rect x='118.13' y='20.55' width='17.28' height='17.28' style='stroke-width: 1.94; stroke: none; fill: #EBEBEB;' />
