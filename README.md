@@ -85,7 +85,11 @@ In this lecture, we will cover regression techniques and regularization methods 
   5.4 [Shrinkage and seection intuition](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-shrinkage-selection-intuition.html)
   5.5 [Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/05-regression-regularization/05-tidymodels-workflow.html)
   
-6. Classification
+6. *Classification*
+In this lecture, we will cover classification techniques such as logistic regression, decision trees, and support vector machines.  
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.pdf)  
+  
 
 7. Decision Trees and Random Forests
 
