@@ -89,10 +89,14 @@ In this lecture, we will cover regression techniques and regularization methods 
 In this lecture, we will cover classification techniques such as logistic regression.
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-classification.pdf)  
+  6.1 [Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-tidymodels-workflow-covid.html)  
   
-
-7. Decision Trees and Random Forests
-
+7. *Decision Trees and Random Forests*
+In this lecture, we will cover decision trees and random forests, including their advantages and disadvantages.  
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/07-trees-forests/07-trees-forests.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/07-trees-forests/07-trees-forests.pdf)  
+   
+  
 ### Part II: Causal Inference and ML
 
 8. Causal Inference

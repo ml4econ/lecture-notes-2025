@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='svglite' width='504.00pt' height='504.00pt' viewBox='0 0 504.00 504.00'>
+<defs>
+  <style type='text/css'><![CDATA[
+    .svglite line, .svglite polyline, .svglite polygon, .svglite path, .svglite rect, .svglite circle {
+      fill: none;
+      stroke: #000000;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-miterlimit: 10.00;
+    }
+    .svglite text {
+      white-space: pre;
+    }
+  ]]></style>
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: #FFFFFF;'/>
+<defs>
+  <clipPath id='cpMC4wMHw1MDQuMDB8MC4wMHw1MDQuMDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='504.00' />
+  </clipPath>
+</defs>
+<g clip-path='url(#cpMC4wMHw1MDQuMDB8MC4wMHw1MDQuMDA=)'>
+<polygon points='211.31,229.01 211.90,224.56 213.61,220.42 216.34,216.86 219.90,214.13 224.05,212.42 228.49,211.83 275.51,211.83 279.95,212.42 284.10,214.13 287.66,216.86 290.39,220.42 292.10,224.56 292.69,229.01 292.69,257.81 292.10,262.26 290.39,266.40 287.66,269.96 284.10,272.69 279.95,274.40 275.51,274.99 228.49,274.99 224.05,274.40 219.90,272.69 216.34,269.96 213.61,266.40 211.90,262.26 211.31,257.81 ' style='stroke-width: 1.50; fill: #F7FBFF;' />
+<text x='252.00' y='237.60' text-anchor='middle' style='font-size: 24.00px; font-family: "Arial";' textLength='26.70px' lengthAdjust='spacingAndGlyphs'>23</text>
+<text x='252.00' y='266.40' text-anchor='middle' style='font-size: 24.00px; font-family: "Arial";' textLength='61.39px' lengthAdjust='spacingAndGlyphs'>100%</text>
+</g>
+</svg>
