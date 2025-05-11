@@ -92,7 +92,7 @@ In this lecture, we will cover classification techniques such as logistic regres
   6.1 [Tidymodels Workflow](https://raw.githack.com/ml4econ/lecture-notes-2025/master/06-classification/06-tidymodels-workflow-covid.html)  
   
 7. *Decision Trees and Random Forests*
-In this lecture, we will cover decision trees and random forests, including their advantages and disadvantages.  
+In this lecture, we will cover decision trees and random forests, including their advantages and disadvantages.
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/07-trees-forests/07-trees-forests.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/07-trees-forests/07-trees-forests.pdf)  
    
