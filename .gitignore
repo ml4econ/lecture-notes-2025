@@ -42,8 +42,8 @@ vignettes/*.pdf
 
 0[8-9]*/
 1[0-4]*/
-a*/
+#a*/
 b*/
-
+000-explainability/
 
 

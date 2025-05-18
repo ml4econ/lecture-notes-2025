@@ -56,7 +56,7 @@ pacman::p_load(
   here         # for referencing folders and files
 )
 
-# remotes::install_github("grantmcdermott/parttree")
+#remotes::install_github("grantmcdermott/parttree")
 library(parttree)
 ```
 
@@ -740,15 +740,15 @@ Cons:
 ---
 # The Random Forests Algorithm
 
-Suppose $B$ is the number of bootstrapped samples, representing the number of trees in the forest (typically thousands).
+Suppose $B$ is the number of bootstrapped samples, representing the number of trees in the forest (typically hundreds).
 
 For each $b=1$ to $B$:
 
 1. Sample $n$ observations from the data, allowing replacement (bootstrap sampling).
 
-2. Grow a tree $T_b$ using the bootstrap sample. At each split, randomly select a subset of $m$ features (a common choice is $m \approx \sqrt{p}$, where $p$ is the dimension of $x$).
+2. Grow a tree $T_b$ using the bootstrap sample. At each split, randomly select a subset of $m$ features (a common choice is $m \approx p/3$ for regression and $m \approx \sqrt{p}$ for classification, where $p$ is the dimension of $x$).
 
-3. Utilize typical stopping criteria for tree models to determine when a tree is complete. However, do not perform pruning.
+3. Grow each tree to maximum depth (until every terminal node is pure or has fewer than some minimal number of observations); do not prune.
 
 
 
@@ -765,13 +765,14 @@ Here, $\hat{f}^{* b}(x)$ represents the prediction based on the $b$-th tree in t
 
 Classification Forests:
 
-- For each test observation, the predicted class is determined by taking a majority vote from the predictions of all $B$ trees.
+- For each test observation, the predicted class is determined by taking a majority vote from the predictions of all $B$ trees. Nonetheless, many packages output class probabilities that you may threshold later.
 
 
 ---
 # Out-of-Bag Error Estimation
 
 - Due to the bootstrap sampling, on average, each bagged tree utilizes approximately two-thirds of the observations from the training set.
+  - Each bootstrap sample draws $n$ cases with replacement; the expected fraction included at least once is $1-e^{-1} \approx 0.632$.
 
 - As a result, we can utilize the remaining one-third of the observations as an "out-of-bag" (OOB) validation set.
 
@@ -797,7 +798,7 @@ where:
 - `num.trees` is the argument for $B$, representing the number of trees in the forest.
 - `mtry` is the argument for $m$, which determines the number of features randomly selected before each split.
 
-Please note that the `importance` argument will be used later to construct variable importance measures.
+The `importance` argument will be used later to construct variable importance measures.
 
 
 
@@ -831,14 +832,39 @@ name: ensemble
 
 # Other Ensemble Methods
 
+
 ---
-# Bagging and Boosting
+# Bagging: Cutting Variance
 
-- Bagging (Bootstrap Aggregating): Similar to random forests, but with $m=p$, where $m$ is the number of features. However, bagging is generally inferior to random forests because the trees tend to be correlated.
+### Bagging (Bootstrap Aggregating)
 
-- Boosting: This is an example of a "slow learner" approach, where each tree is grown using information from previously grown trees. Boosting can be estimated using the [`{gbm}`](https://cran.r-project.org/web/packages/gbm/index.html) package.
+- Core move: draw many bootstrap samples (size n, with replacement) and grow an unpruned tree on each
 
-__Note:__ Boosting algorithms, in general, are highly popular and often achieve high predictive performance.
+- Why it helps: every tree is a noisy, high-variance predictor; averaging their votes cancels much of that variance → stabler predictions
+
+- Relation to Random Forests:
+
+  - Bagging is Random Forest with mtry = $p$ (all features considered at every split)
+
+  -Because the same strong predictors keep winning splits, trees stay more correlated, so bagging’s error is usually ≥ Random Forest’s
+  
+
+---
+# Boosting: Fixing Bias
+
+### Boosting (Gradient-Boosted Trees)
+
+- Core move: build a sequence of shallow “weak” trees; each new tree learns from the residual mistakes of the ensemble so far
+
+- Why it helps: by incrementally correcting bias, the ensemble hones in on patterns a single tree misses—often achieving lower bias than RF or bagging
+
+- Relation to Random Forests:
+
+  - RF/bagging ↓variance via parallel, independent trees; boosting ↓bias via dependent, additive trees
+
+  -RF can train trees in parallel; boosting is inherently sequential
+
+- Toolkits: `gbm`, `xgboost`, `lightgbm`, `catboost`
 
 
 

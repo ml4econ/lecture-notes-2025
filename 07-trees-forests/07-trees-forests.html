@@ -25,7 +25,7 @@ class: center, middle, inverse, title-slide
 ### Itamar Caspi
 ]
 .date[
-### May 11, 2025 (updated: 2025-05-11)
+### May 11, 2025 (updated: 2025-05-18)
 ]
 
 ---
@@ -54,7 +54,7 @@ pacman::p_load(
   here         # for referencing folders and files
 )
 
-# remotes::install_github("grantmcdermott/parttree")
+#remotes::install_github("grantmcdermott/parttree")
 library(parttree)
 ```
 
@@ -110,7 +110,7 @@ boston &lt;-
 
 ```
 ## Rows: 506 Columns: 14
-## -- Column specification ----------------------------------------------------------------
+## -- Column specification -----------------------------------------------------------------------
 ## Delimiter: ","
 ## dbl (14): crim, zn, indus, chas, nox, rm, age, dis, rad, tax, ptratio, b, lstat, medv
 ## 
@@ -570,20 +570,20 @@ titanic_raw %&gt;% glimpse()
 ```
 ## Rows: 1,309
 ## Columns: 14
-## $ pclass    [3m[38;5;246m&lt;dbl&gt;[39m[23m 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,~
-## $ survived  [3m[38;5;246m&lt;dbl&gt;[39m[23m 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1,~
-## $ name      [3m[38;5;246m&lt;chr&gt;[39m[23m "Allen, Miss. Elisabeth Walton", "Allison, Master. Hudson Trevor", "~
-## $ sex       [3m[38;5;246m&lt;chr&gt;[39m[23m "female", "male", "female", "male", "female", "male", "female", "mal~
-## $ age       [3m[38;5;246m&lt;dbl&gt;[39m[23m 29.00, 0.92, 2.00, 30.00, 25.00, 48.00, 63.00, 39.00, 53.00, 71.00, ~
-## $ sibsp     [3m[38;5;246m&lt;dbl&gt;[39m[23m 0, 1, 1, 1, 1, 0, 1, 0, 2, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0,~
-## $ parch     [3m[38;5;246m&lt;dbl&gt;[39m[23m 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0,~
-## $ ticket    [3m[38;5;246m&lt;chr&gt;[39m[23m "24160", "113781", "113781", "113781", "113781", "19952", "13502", "~
-## $ fare      [3m[38;5;246m&lt;dbl&gt;[39m[23m 211.3375, 151.5500, 151.5500, 151.5500, 151.5500, 26.5500, 77.9583, ~
-## $ cabin     [3m[38;5;246m&lt;chr&gt;[39m[23m "B5", "C22 C26", "C22 C26", "C22 C26", "C22 C26", "E12", "D7", "A36"~
-## $ embarked  [3m[38;5;246m&lt;chr&gt;[39m[23m "S", "S", "S", "S", "S", "S", "S", "S", "S", "C", "C", "C", "C", "S"~
-## $ boat      [3m[38;5;246m&lt;chr&gt;[39m[23m "2", "11", NA, NA, NA, "3", "10", NA, "D", NA, NA, "4", "9", "6", "B~
-## $ body      [3m[38;5;246m&lt;dbl&gt;[39m[23m NA, NA, NA, 135, NA, NA, NA, NA, NA, 22, 124, NA, NA, NA, NA, NA, NA~
-## $ home.dest [3m[38;5;246m&lt;chr&gt;[39m[23m "St Louis, MO", "Montreal, PQ / Chesterville, ON", "Montreal, PQ / C~
+## $ pclass    &lt;dbl&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~
+## $ survived  &lt;dbl&gt; 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, ~
+## $ name      &lt;chr&gt; "Allen, Miss. Elisabeth Walton", "Allison, Master. Hudson Trevor", "Allison~
+## $ sex       &lt;chr&gt; "female", "male", "female", "male", "female", "male", "female", "male", "fe~
+## $ age       &lt;dbl&gt; 29.00, 0.92, 2.00, 30.00, 25.00, 48.00, 63.00, 39.00, 53.00, 71.00, 47.00, ~
+## $ sibsp     &lt;dbl&gt; 0, 1, 1, 1, 1, 0, 1, 0, 2, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, ~
+## $ parch     &lt;dbl&gt; 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, ~
+## $ ticket    &lt;chr&gt; "24160", "113781", "113781", "113781", "113781", "19952", "13502", "112050"~
+## $ fare      &lt;dbl&gt; 211.3375, 151.5500, 151.5500, 151.5500, 151.5500, 26.5500, 77.9583, 0.0000,~
+## $ cabin     &lt;chr&gt; "B5", "C22 C26", "C22 C26", "C22 C26", "C22 C26", "E12", "D7", "A36", "C101~
+## $ embarked  &lt;chr&gt; "S", "S", "S", "S", "S", "S", "S", "S", "S", "C", "C", "C", "C", "S", "S", ~
+## $ boat      &lt;chr&gt; "2", "11", NA, NA, NA, "3", "10", NA, "D", NA, NA, "4", "9", "6", "B", NA, ~
+## $ body      &lt;dbl&gt; NA, NA, NA, 135, NA, NA, NA, NA, NA, 22, 124, NA, NA, NA, NA, NA, NA, NA, N~
+## $ home.dest &lt;chr&gt; "St Louis, MO", "Montreal, PQ / Chesterville, ON", "Montreal, PQ / Chesterv~
 ```
 
 
@@ -719,11 +719,11 @@ titanic_lm %&gt;% glimpse()
 ```
 ## Rows: 1,046
 ## Columns: 5
-## $ survived                  &lt;dbl&gt; 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1~
-## $ class_3                   &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
-## $ class_1_or_2_age_below_16 &lt;dbl&gt; 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
-## $ class_1_age_above_16      &lt;dbl&gt; 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1~
-## $ class_2_age_above_16      &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0~
+## $ survived                  &lt;dbl&gt; 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1,~
+## $ class_3                   &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
+## $ class_1_or_2_age_below_16 &lt;dbl&gt; 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
+## $ class_1_age_above_16      &lt;dbl&gt; 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,~
+## $ class_2_age_above_16      &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
 ```
 
 ---
@@ -786,15 +786,15 @@ Cons:
 ---
 # The Random Forests Algorithm
 
-Suppose `\(B\)` is the number of bootstrapped samples, representing the number of trees in the forest (typically thousands).
+Suppose `\(B\)` is the number of bootstrapped samples, representing the number of trees in the forest (typically hundreds).
 
 For each `\(b=1\)` to `\(B\)`:
 
 1. Sample `\(n\)` observations from the data, allowing replacement (bootstrap sampling).
 
-2. Grow a tree `\(T_b\)` using the bootstrap sample. At each split, randomly select a subset of `\(m\)` features (a common choice is `\(m \approx \sqrt{p}\)`, where `\(p\)` is the dimension of `\(x\)`).
+2. Grow a tree `\(T_b\)` using the bootstrap sample. At each split, randomly select a subset of `\(m\)` features (a common choice is `\(m \approx p/3\)` for regression and `\(m \approx \sqrt{p}\)` for classification, where `\(p\)` is the dimension of `\(x\)`).
 
-3. Utilize typical stopping criteria for tree models to determine when a tree is complete. However, do not perform pruning.
+3. Grow each tree to maximum depth (until every terminal node is pure or has fewer than some minimal number of observations); do not prune.
 
 
 
@@ -811,13 +811,14 @@ Here, `\(\hat{f}^{* b}(x)\)` represents the prediction based on the `\(b\)`-th t
 
 Classification Forests:
 
-- For each test observation, the predicted class is determined by taking a majority vote from the predictions of all `\(B\)` trees.
+- For each test observation, the predicted class is determined by taking a majority vote from the predictions of all `\(B\)` trees. Nonetheless, many packages output class probabilities that you may threshold later.
 
 
 ---
 # Out-of-Bag Error Estimation
 
 - Due to the bootstrap sampling, on average, each bagged tree utilizes approximately two-thirds of the observations from the training set.
+  - Each bootstrap sample draws `\(n\)` cases with replacement; the expected fraction included at least once is `\(1-e^{-1} \approx 0.632\)`.
 
 - As a result, we can utilize the remaining one-third of the observations as an "out-of-bag" (OOB) validation set.
 
@@ -844,7 +845,7 @@ where:
 - `num.trees` is the argument for `\(B\)`, representing the number of trees in the forest.
 - `mtry` is the argument for `\(m\)`, which determines the number of features randomly selected before each split.
 
-Please note that the `importance` argument will be used later to construct variable importance measures.
+The `importance` argument will be used later to construct variable importance measures.
 
 
 
@@ -896,14 +897,39 @@ name: ensemble
 
 # Other Ensemble Methods
 
+
 ---
-# Bagging and Boosting
+# Bagging: Cutting Variance
 
-- Bagging (Bootstrap Aggregating): Similar to random forests, but with `\(m=p\)`, where `\(m\)` is the number of features. However, bagging is generally inferior to random forests because the trees tend to be correlated.
+### Bagging (Bootstrap Aggregating)
 
-- Boosting: This is an example of a "slow learner" approach, where each tree is grown using information from previously grown trees. Boosting can be estimated using the [`{gbm}`](https://cran.r-project.org/web/packages/gbm/index.html) package.
+- Core move: draw many bootstrap samples (size n, with replacement) and grow an unpruned tree on each
 
-__Note:__ Boosting algorithms, in general, are highly popular and often achieve high predictive performance.
+- Why it helps: every tree is a noisy, high-variance predictor; averaging their votes cancels much of that variance → stabler predictions
+
+- Relation to Random Forests:
+
+  - Bagging is Random Forest with mtry = `\(p\)` (all features considered at every split)
+
+  -Because the same strong predictors keep winning splits, trees stay more correlated, so bagging’s error is usually ≥ Random Forest’s
+  
+
+---
+# Boosting: Fixing Bias
+
+### Boosting (Gradient-Boosted Trees)
+
+- Core move: build a sequence of shallow “weak” trees; each new tree learns from the residual mistakes of the ensemble so far
+
+- Why it helps: by incrementally correcting bias, the ensemble hones in on patterns a single tree misses—often achieving lower bias than RF or bagging
+
+- Relation to Random Forests:
+
+  - RF/bagging ↓variance via parallel, independent trees; boosting ↓bias via dependent, additive trees
+
+  -RF can train trees in parallel; boosting is inherently sequential
+
+- Toolkits: `gbm`, `xgboost`, `lightgbm`, `catboost`
 
 
 
@@ -927,11 +953,11 @@ class: .title-slide-final, center, inverse, middle
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
 <script src="https://platform.twitter.com/widgets.js"></script>
 <script>var slideshow = remark.create({
-"highlightStyle": "github",
-"highlightLines": true,
-"countIncrementalSlides": false,
-"ratio": "16:9",
-"slideNumberFormat": "<div class=\"progress-bar-container\">\n  <div class=\"progress-bar\" style=\"width: calc(%current% / %total% * 100%);\">\n  </div>\n</div>\n"
+  "highlightStyle": "github",
+  "highlightLines": true,
+  "countIncrementalSlides": false,
+  "ratio": "16:9",
+  "slideNumberFormat": "<div class=\"progress-bar-container\">\n  <div class=\"progress-bar\" style=\"width: calc(%current% / %total% * 100%);\">\n  </div>\n</div>\n"
 });
 if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
   window.dispatchEvent(new Event('resize'));
