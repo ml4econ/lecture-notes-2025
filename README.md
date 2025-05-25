@@ -105,6 +105,9 @@ In this lecture, we will רקהןק' the principles of causal inference, includi
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/08-causal-inference/08-causal-inference.pdf)  
    
 9. High-Dimensional Confounding Adjustment
+In this lecture, we will explore methods for adjusting for high-dimensional confounding in causal inference, including propensity score matching and inverse probability weighting.
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/09-lasso-ate/09-lasso-ate.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/09-lasso-ate/09-lasso-ate.pdf)
 
 10. High-Dimensional Heterogeneous Treatment Effects
 
