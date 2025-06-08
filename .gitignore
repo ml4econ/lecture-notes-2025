@@ -41,7 +41,7 @@ vignettes/*.pdf
 # lecture notes folders
 
 #0[8-9]*/
-1[0-4]*/
+1[1-4]*/
 #a*/
 b*/
 000-explainability/
