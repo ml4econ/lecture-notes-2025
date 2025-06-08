@@ -110,6 +110,9 @@ In this lecture, we will explore methods for adjusting for high-dimensional conf
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/09-lasso-ate/09-lasso-ate.pdf)
 
 10. High-Dimensional Heterogeneous Treatment Effects
+In this lecture, we will discuss methods for estimating heterogeneous treatment effects in high-dimensional settings, including causal trees and forests.
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/10-trees-cate/10-trees-cate.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/10-trees-cate/10-trees-cate.pdf)
 
 ### Part III: Unsupervised Learning and Language Models
 
