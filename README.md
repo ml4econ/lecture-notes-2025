@@ -117,6 +117,9 @@ In this lecture, we will discuss methods for estimating heterogeneous treatment 
 ### Part III: Unsupervised Learning and Language Models
 
 11. Text as Data
+In this lecture, we will explore how to use text data in machine learning, including text preprocessing, feature extraction, and topic analysis.
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/11-text-mining/11-text-mining.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/11-text-mining/11-text-mining.pdf)
 
 12. Deep Learning
 
