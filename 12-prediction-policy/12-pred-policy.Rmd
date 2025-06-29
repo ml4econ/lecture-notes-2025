@@ -110,18 +110,20 @@ $$\frac{d\Pi}{dD}
 
 
 ---
-# Two Edge Cases
+# Edge Cases vs. Reality
 
-$$\frac{d\Pi}{dD}
-=
-\underbrace{\left.\frac{\partial \Pi}{\partial D}\right|_{Y=\hat Y}}_{\text{direct (prediction)}}
-+
-\underbrace{\frac{\partial \Pi}{\partial Y}\,
-            \frac{\partial Y}{\partial D}}_{\text{indirect (causal)}}$$
-            
-1. *Pure prediction*: $\partial Y/\partial D = 0$ → only the first term matters (e.g. umbrella choice).  
-2. *Pure causation*: $\left.\partial\Pi/\partial D\right|_{Y}=0$ → only the second term matters (e.g. vaccine dose).  
-3. *Mixed*: both terms non-zero → optimal policy demands both good forecasts *and* causal inference.
+
+$$\frac{d\Pi}{dD}=\color{steelblue}{\underbrace{\left.\frac{\partial \Pi}{\partial D}\right|_{Y=\hat Y}}_{\text{direct (prediction)}}}+\color{darkorange}{\underbrace{\frac{\partial \Pi}{\partial Y}\,\frac{\partial Y}{\partial D}}_{\text{indirect (causal)}}}$$
+
+* **Pure prediction**   $∂Y/∂D  =  0$
+  – decision cannot move the outcome
+  – *umbrella choice* (your umbrella won’t change the weather)
+
+* **Pure causation**   $(∂Π/∂D)|_Y  =  0$
+  – action matters *only* via its effect on Y
+  – *vaccine dose* (ignoring side‑effects)
+
+* **Most real decisions**: both terms ≠ 0 → need **good forecasts** *and* **causal evidence**
 
 
 
@@ -158,13 +160,15 @@ When the action cannot influence the outcome, causal methods add no value—the 
 ---
 # Real-world prediction-policy problem: Joint replacement
 
-* ≈ 750 000 hip or knee replacements are performed in the United States each year.  
-* **Benefits:** substantial gains in mobility and pain relief.  
-* **Costs:** about $15 000 per procedure **plus** a painful, months-long recovery.
+- 750,000 hip or knee replacements are performed in the United States each year.
 
-Working assumption: the payoff $\Pi$ from surgery rises with postoperative longevity $Y$.
+- Benefits: substantial gains in mobility and pain relief.
 
-**Question:** Using only information available *before* the operation, can we forecast which surgeries will be futile and redirect those resources?
+- Costs: about $15,000 per procedure plus a painful, months-long recovery.
+
+>**Working assumption:** the payoff, $\Pi$, from surgery rises with postoperative longevity, $Y$.
+
+>**Key Question:** Using only information available before the operation, can we forecast which surgeries will be futile and redirect those resources?
 
 
 
@@ -183,30 +187,32 @@ _Note_: Kleinberg et al. (2015) abstract from surgical risk.
 
 
 ---
-# The data
+# Data
 
-- A 20% sample of 7.4 million Medicare beneficiaries, 98,090 (1.3%) of which had a claim for joint replacement in 2010.
+- A 20% sample of 7.4 million Medicare beneficiaries was analyzed; 98,090 individuals (1.3%) had a claim for joint replacement in 2010.
 
-- 1.4 percent of this sample die in the month after surgery, potentially from complications of the surgery itself, and 4.2 percent die in the 1–12 months after surgery.
+- Among these patients, 1.4% died within one month of surgery—likely due to complications—and an additional 4.2% died within the subsequent 1–12 months.
 
-- Average mortality rate $\sim$ 5% - _on average_, surgeries are not futile.
+- The average mortality rate is approximately 5%. On average, surgeries are not futile.
 
-- This is perhaps misleading. A more appropriate question is whether surgeries on the predictably riskiest patients were futile.
+- However, this average may be misleading. A more relevant question is whether surgeries performed on the predictably highest-risk patients were futile.
 
 ---
 # Predicting mortality risk
 
-Kleinberg et al. setup:
+Setup:
 
-- _Outcome_: mortality in 1-12 months
-- _Features_: Medicare claims dated prior to joint replacement, including patient demographics (age, sex, geography); co-morbidities, symptoms, injuries, acute conditions, and their evolution over time; and health-care utilization.
-- _Sample_: training sample 65K observations / test sample, 33K observations
-- _ML algorithm_: Lasso
+- **Outcome:** Mortality within 1–12 months post-surgery
+- **Features:** Medicare claims data prior to joint replacement, including patient demographics (age, sex, geography); comorbidities, symptoms, injuries, acute conditions, and their progression over time; and healthcare utilization
+- **Sample:** Training set: 65,000 observations; Test set: 33,000 observations
+- **ML algorithm:** Lasso regression
 
-The play book: 
-- Put beneficiaries from the test-set into percentiles by model predicted mortality risk.
-- Attache to each percentile its corresponding share of surgeries.
-- Show that an algorithm can do better then physicians.
+The playbook:
+
+- Rank test-set beneficiaries by model-predicted mortality risk percentiles
+- Assign to each percentile its corresponding share of surgeries
+- Demonstrate that the algorithm outperforms physician decision-making
+
 
 ---
 # The riskiest people receiving joint replacement
@@ -267,7 +273,7 @@ The table reports:
 - Futile procedures averted (col 4) – operations reallocated away from patients with ≥50 % predicted 12-month mortality.
 - Annual savings (col 5) – hospital costs avoided (≈ $15 k per surgery).
 
-Key line: replacing the top 10 % risk group prevents 13 350 likely futile operations and saves $200 m per year—evidence that the algorithm screens better than current physician judgement.
+Key line: replacing the top 10 % risk group prevents 13,350 likely futile operations and saves $200m per year—evidence that the algorithm screens better than current physician judgement.
 ]
 
 
@@ -279,17 +285,17 @@ Note that the numbers that appear in this slide, taken from Susan Athey's presen
 # What can still go wrong?
 
 .pull-left[
-**Econometric issue #2 — omitted-payoff bias**  
-Physicians might see benefits (pain relief) that our data miss.
+**Econometric Concern #2 — Omitted Payoff Bias**
+Physicians might observe benefits—such as pain relief—that are not captured in our data.
 
-*Test the hypothesis*  
-Use post-surgery pain-management proxies:  
+**Testing the Hypothesis**  
+Use proxies for post-operative pain relief:
+- Physical therapy (PT) and joint injection claims
+- Follow-up visits for osteoarthritis
 
-- **PT + joint-injection claims**  
-- **Osteoarthritis follow-up visits**
-
-The table shows these proxies are **flat across risk percentiles**.  
-High-mortality patients do **not** gain extra pain relief ⇒ reallocating their surgeries is unlikely to reduce welfare.
+Empirically, these proxies are flat across predicted risk percentiles.
+High-mortality patients do not appear to experience greater pain relief 
+⇒ Reallocating their surgeries is unlikely to reduce welfare.
 ]
 
 .pull-right[
@@ -304,26 +310,27 @@ include_graphics("figs/table2_hip_cont.png")
 
 
 ---
-# Leveling the playing field
+#Leveling the Playing Field
 
-To compare physicians (or any human experts) with an ML model, both must face **identical inputs and incentives**:
+To fairly compare physicians (or any human experts) with a machine learning model, both must operate under identical inputs and incentives:
 
-- **Same information** – the full pre-decision data set.  
-- **Same objective** – an agreed payoff or loss function.  
-- **Same constraints** – budget, timing, and policy rules.
+- **Same information** – access to the full pre-decision dataset
+- **Same objective** – a shared payoff or loss function
+- **Same constraints** – identical budgetary, temporal, and policy limitations
 
-Only after this alignment can we ask: *Who allocates resources better?*
+>Only after aligning these conditions can we meaningfully ask:
+Who allocates resources more effectively?
 
 ---
 # Key take-aways
 
-- A more accurate model ≠ automatically better decisions.  
-  Payoff alignment and constraints matter.
+- A more accurate model does not automatically lead to better decisions.
+Alignment with payoffs and real-world constraints is essential.
 
-- Selective-labels and omitted-payoff bias can hide algorithmic gains—or create phantom ones.
+- Selective-labels and omitted-payoff bias can obscure algorithmic gains—or generate illusory ones.
 
-- Combining ML with social-science insight (incentives, fairness, welfare metrics) is crucial for robust policy design.
-s
+- Robust policy design requires marrying machine learning with social science:
+incentives, fairness, and welfare metrics must guide implementation.
 
 
 
