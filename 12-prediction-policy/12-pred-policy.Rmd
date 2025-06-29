@@ -1,0 +1,516 @@
+---
+title: "12 - Prediction Policy Problems"
+subtitle: "ml4econ, HUJI 2025"
+author: "Itamar Caspi"
+date: "June 29, 2025 (updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    css: [default, "style/middlebury.css", "style/middlebury-fonts.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      beforeInit: "https://platform.twitter.com/widgets.js"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+      
+---
+
+```{r packages, echo=FALSE, message=FALSE, warning=FALSE}
+
+if (!require("pacman"))
+  install.packages("pacman")
+
+pacman::p_load(knitr,
+               xaringan,
+               RefManageR)
+
+```
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+
+knitr::opts_chunk$set(eval = TRUE,
+                      echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      cache = FALSE)
+
+htmltools::tagList(rmarkdown::html_dependency_font_awesome())
+```
+
+```{r, references, echo=FALSE, cache=FALSE}
+BibOptions(check.entries = FALSE, 
+           bib.style = "numeric", 
+           cite.style = "authoryear", 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+bib <- ReadBib("refs/refs.bib", check = FALSE)
+```
+
+# Outline
+
+- [Prediction Policy Problems](#prediction)
+
+- [Prediction and Fairness](#fairness)
+
+
+
+---
+class: title-slide-section-blue, center, middle
+name: prediction
+
+# Prediction Policy Problems
+
+---
+# Motivation
+
+Consider the following toy example from Kleinberg, Ludwig, Mullainathan, and Obermeyer (AER 2015):
+
+- $Y=\{\text{rain},\text{no rain}\}$
+- $X$ atmospheric conditions
+- $D$ is a binary policy decision
+- $\Pi(Y,D)$ payoff (utility)
+
+The change in payoff resulting from a policy decision is given by
+
+$$\underbrace{\frac{d\Pi(Y,D)}{dD}}_{\text{total effect of the decision}}
+ \;=\;
+ \underbrace{\left.\frac{\partial \Pi}{\partial D}\right|_{Y}}
+           _{\substack{\text{direct / policy term}\\(\text{needs a *prediction* of }Y)}}
+ \;+\;
+ \underbrace{\frac{\partial \Pi}{\partial Y}\;
+             \frac{\partial Y}{\partial D}}
+           _{\substack{\text{indirect term}\\(\text{needs the *causal* effect of }D\text{ on }Y)}}$$
+
+
+---
+# Prediction-Policy Problems
+
+$$\frac{d\Pi}{dD}
+=
+\underbrace{\left.\frac{\partial \Pi}{\partial D}\right|_{Y=\hat Y}}_{\text{direct (prediction)}}
++
+\underbrace{\frac{\partial \Pi}{\partial Y}\,
+            \frac{\partial Y}{\partial D}}_{\text{indirect (causal)}}$$
+
+**Interpretation**
+
+* The *direct* term asks: *If the outcome $Y$ were frozen at its forecast $\hat Y$, what is the marginal payoff of changing $D$?*  
+  – needs accurate **prediction**, no causal ID.
+
+* The *indirect* term multiplies how much an extra unit of $Y$ is worth $\bigl(\partial \Pi/\partial Y\bigr)$ by how $D$ *causes* $Y$ to move $\bigl(\partial Y/\partial D\bigr)$.  
+  – needs **causal** evidence.
+
+
+---
+# Two Edge Cases
+
+$$\frac{d\Pi}{dD}
+=
+\underbrace{\left.\frac{\partial \Pi}{\partial D}\right|_{Y=\hat Y}}_{\text{direct (prediction)}}
++
+\underbrace{\frac{\partial \Pi}{\partial Y}\,
+            \frac{\partial Y}{\partial D}}_{\text{indirect (causal)}}$$
+            
+1. *Pure prediction*: $\partial Y/\partial D = 0$ → only the first term matters (e.g. umbrella choice).  
+2. *Pure causation*: $\left.\partial\Pi/\partial D\right|_{Y}=0$ → only the second term matters (e.g. vaccine dose).  
+3. *Mixed*: both terms non-zero → optimal policy demands both good forecasts *and* causal inference.
+
+
+
+---
+
+# Rain dance vs. umbrella 
+
+```{r, echo=FALSE, out.width = "70%", fig.align='center'}
+
+include_graphics("figs/rain.png")
+
+```
+
+
+
+---
+# Prediction-Policy Problems
+
+In the past two lectures we focused on assessing policy with causal inference and treatment effects.
+
+Some decisions, however, depend *only* on prediction (Kleinberg, Ludwig, Mullainathan & Obermeyer 2015):
+
+- Which applicants will be **most effective teachers?** (hiring & promotion)  
+- **How long will a worker stay unemployed?** (setting optimal savings)  
+- **Which restaurants are likeliest to violate health codes?** (targeting inspections)  
+- **Which youths face the highest risk of re-offending?** (allocating interventions)  
+- **How credit-worthy is a loan applicant?** (approval decisions)
+
+When the action cannot influence the outcome, causal methods add no value—the planner’s job is to forecast as accurately as possible.
+
+
+
+
+---
+# Real-world prediction-policy problem: Joint replacement
+
+* ≈ 750 000 hip or knee replacements are performed in the United States each year.  
+* **Benefits:** substantial gains in mobility and pain relief.  
+* **Costs:** about $15 000 per procedure **plus** a painful, months-long recovery.
+
+Working assumption: the payoff $\Pi$ from surgery rises with postoperative longevity $Y$.
+
+**Question:** Using only information available *before* the operation, can we forecast which surgeries will be futile and redirect those resources?
+
+
+
+---
+
+# Joint replacement DAG
+
+```{r, echo=FALSE, out.width = "30%", fig.align='center'}
+
+include_graphics("figs/joint.png")
+
+```
+
+
+_Note_: Kleinberg et al. (2015) abstract from surgical risk.
+
+
+---
+# The data
+
+- A 20% sample of 7.4 million Medicare beneficiaries, 98,090 (1.3%) of which had a claim for joint replacement in 2010.
+
+- 1.4 percent of this sample die in the month after surgery, potentially from complications of the surgery itself, and 4.2 percent die in the 1–12 months after surgery.
+
+- Average mortality rate $\sim$ 5% - _on average_, surgeries are not futile.
+
+- This is perhaps misleading. A more appropriate question is whether surgeries on the predictably riskiest patients were futile.
+
+---
+# Predicting mortality risk
+
+Kleinberg et al. setup:
+
+- _Outcome_: mortality in 1-12 months
+- _Features_: Medicare claims dated prior to joint replacement, including patient demographics (age, sex, geography); co-morbidities, symptoms, injuries, acute conditions, and their evolution over time; and health-care utilization.
+- _Sample_: training sample 65K observations / test sample, 33K observations
+- _ML algorithm_: Lasso
+
+The play book: 
+- Put beneficiaries from the test-set into percentiles by model predicted mortality risk.
+- Attache to each percentile its corresponding share of surgeries.
+- Show that an algorithm can do better then physicians.
+
+---
+# The riskiest people receiving joint replacement
+
+.pull-left[
+```{r, echo=FALSE, out.width = "60%", fig.align='center'}
+
+include_graphics("figs/table2_hip.png")
+
+```
+_Source_: Kleinberg et al. (2015).
+
+
+]
+.pull-right[
+How to read the table
+
+- Col 1: Model-predicted mortality percentile (1 = riskiest 1 %).
+- Col 2: Actual 12-month mortality for that percentile (standard errors in parentheses).
+- Col 3: Number of joint-replacement surgeries performed each year in that bin.
+
+Example: the top 1 % risk group received 4,905 surgeries, yet 56.2 % died within a year—so most of those operations were likely futile.
+]
+
+---
+# Can an algorithm beat physicians?
+
+**Econometric hurdle — selective-labels bias**  
+We only observe post-operative mortality for people *who actually received a joint replacement*; the counterfactual outcome for untreated, yet eligible, patients is missing.
+
+**Counterfactual construction**
+
+1. Pull the pool of patients who satisfied Medicare eligibility but **did not** undergo surgery.  
+2. Working assumption: surgeons schedule operations roughly in order of *increasing* risk (lowest-risk first).  
+3. Reallocate a fixed number of surgeries from the highest-risk treated patients to the lowest-risk untreated eligibles and compare predicted mortality.
+
+If this simulated swap lowers the expected death rate, the algorithm outperforms physician judgment.
+
+
+
+---
+# So, can the lasso beat physicians?
+
+
+.pull-left[
+```{r, echo=FALSE, out.width = "90%", fig.align='center'}
+
+include_graphics("figs/table2_hip_cont_2.png")
+
+```
+_Source_: Kleinberg et al. (2015).
+
+*Simulation logic:* For each risk percentile, swap surgeries from the highest-risk treated patients with untreated, median-risk eligibles (50th percentile), holding total surgeries fixed.
+
+]
+.pull-right[
+The table reports:
+- Futile procedures averted (col 4) – operations reallocated away from patients with ≥50 % predicted 12-month mortality.
+- Annual savings (col 5) – hospital costs avoided (≈ $15 k per surgery).
+
+Key line: replacing the top 10 % risk group prevents 13 350 likely futile operations and saves $200 m per year—evidence that the algorithm screens better than current physician judgement.
+]
+
+
+???
+
+Note that the numbers that appear in this slide, taken from Susan Athey's presentation on "Policy Prediction Problems", are slightly different that those that appear in Kleinberg et al., (2015).
+
+---
+# What can still go wrong?
+
+.pull-left[
+**Econometric issue #2 — omitted-payoff bias**  
+Physicians might see benefits (pain relief) that our data miss.
+
+*Test the hypothesis*  
+Use post-surgery pain-management proxies:  
+
+- **PT + joint-injection claims**  
+- **Osteoarthritis follow-up visits**
+
+The table shows these proxies are **flat across risk percentiles**.  
+High-mortality patients do **not** gain extra pain relief ⇒ reallocating their surgeries is unlikely to reduce welfare.
+]
+
+.pull-right[
+
+
+```{r, echo=FALSE, out.width="90%", fig.align='center'}
+include_graphics("figs/table2_hip_cont.png")
+```
+
+]
+
+
+
+---
+# Leveling the playing field
+
+To compare physicians (or any human experts) with an ML model, both must face **identical inputs and incentives**:
+
+- **Same information** – the full pre-decision data set.  
+- **Same objective** – an agreed payoff or loss function.  
+- **Same constraints** – budget, timing, and policy rules.
+
+Only after this alignment can we ask: *Who allocates resources better?*
+
+---
+# Key take-aways
+
+- A more accurate model ≠ automatically better decisions.  
+  Payoff alignment and constraints matter.
+
+- Selective-labels and omitted-payoff bias can hide algorithmic gains—or create phantom ones.
+
+- Combining ML with social-science insight (incentives, fairness, welfare metrics) is crucial for robust policy design.
+s
+
+
+
+
+---
+class: title-slide-section-blue, center, middle
+name: fairness
+
+# Prediction and Fairness
+
+
+---
+
+# Blind Algorithms
+
+Algorithmic Fairness (Kleinberg, Ludwig, Mullainathan, and Rambachan, AER 2018): 
+
+Can we increase algorithmic fairness by ignoring variables that induce such bias such as race, age, sex, etc.?
+
+Short answer: Not necessarily.
+
+
+
+---
+
+# The basic setup
+
+The context: Student admission to college.
+
+Data: $\{Y_i, X_i, R_i\}_{i=1}^N$, where
+- $Y_i$ is performance
+- $X_i$ is a set of features
+- $R_i$ is a binary race indicator where $R_i=1$ for individuals that belong to the minority group and $R_i=0$ otherwise.
+
+Predictors:
+
+- __"Aware"__: $\hat{f}(X_i,R_i)$
+
+- __"Blind"__: $\hat{f}(X_i)$
+
+- __"Orthogonality"__: $\hat{f}(\widetilde{X}_i)$, where $\widetilde{X}_i \perp R_i$.
+
+---
+
+# Definitions
+
+Let $S$ denote the set of admitted students and $\phi(S)$ denote a function that depends only on the predicted performance, measured by $\hat{f}$, of the students in $S$.
+
+__Compatibility condition:__ If $S$ and $S^\prime$ are two sets of students of the same size, sorted in descending order of predicted performance $\widehat{f}(X,R)$, and the predicted performance of the $i^\text{th}$ student in $S$ is at least as large as the predicted performance of the $i^\text{th}$ in $S^\prime$ for all $i$, then $\phi(S)\geq\phi(S^\prime)$.
+
+Intuition: if every member of class $S$ is no worse on paper than the counterpart in $S^\prime$, any planner who claims to care only about student performance shouldn’t prefer $S^\prime$.
+
+
+- The _efficient_ planner maximizes $\phi(S)$ where $\phi(S)$ is compatible with $\hat{f}$.
+
+- The _equitable_ planner seeks to maximize $\phi(S)+\gamma(S)$, where $\phi(S)$ is compatible with $\hat{f}$, and $\gamma(S)$ is monotonically increasing in the number of students in $S$ who have $R=1$.
+
+
+---
+
+# Main result: Keep $R$ in
+
+
+Kleinberg et al. (2018) main result:
+
+> THEOREM 1: _For some choice of $K_0$ and $K_1$ with $K_0 + K_1 = K$, the equitable planner’s problem can be optimized by choosing the $K_0$ applicants in the $R = 0$ group with the highest $\widehat{f}(X,R)$, and the $K_1$ applicants in the $R=1$ group with the highest $\widehat{f}(X,R)$._
+
+
+(See Kleinberg et al., 2018 for a sketch of the proof.)
+
+**In words:** If you want both quality and a fair share of minority students, first decide how many seats each group should get, then simply admit the highest-scoring people within each group—using the race-aware score.
+
+---
+
+# Intuition
+
+- Good ranking of applicants is desired for both types of planners.
+
+- Equitable planners still care about ranking _within_ groups.
+
+- Achieving a more balanced  acceptance  rate is a _post_ prediction step. Can be adjusted by changing the group-wise threshold.
+
+
+---
+
+# Illustration of the result
+
+Say that we have $10$ open slots, $100$ admissions from the majority group $(R=0)$ and $20$ form the minority group $(R=1)$. In addition, assume that the acceptance rate for the minority group is set to $30\%$.
+
+An equitable planner should:
+1. Rank candidates within each group according to $\widehat{f}(X_i,R_i)$.
+
+2. Accept the top $7$ from the $R=0$ group, and top $3$ from the $R=1$ group.
+
+
+---
+
+# Empirical application
+
+.pull-left[
+
+__DATA: __Panel data on This representative sample of students who entered eighth grade in the fall of 1988, and who were then followed up in 1990, 1992, 1994, and mid-20s).
+
+__OUTCOME:__ GPA $\geq$ 2.75.
+
+__FEATURES:__ High school grades, course taking patterns, extracurricular activities, standardized test scores, etc.
+
+__RACE:__ White $(N_0=4,274)$ and black $(N_1=469)$.
+
+__PREDICTORS:__ OLS (random forest for robustness)
+
+]
+.pull-right[
+
+__RESULT:__ The "aware" predictor dominates for both efficient planner and equitable planner.
+
+```{r, echo=FALSE, out.width = "100%", fig.align='center'}
+
+include_graphics("figs/fig1.png")
+
+```
+]
+
+---
+
+# Sources of disagreement
+
+.pull-left[
+
+- On the right: The distribution of black students in the sample across predicted-outcome deciles according to the race-blind or race-aware predictors.
+
+
+- How to read this: In the case of agreement between race-blind and race-aware, the values would be aligned on the main diagonal. By contrast, disagreement is characterized by off-diagonal non-zero values.
+
+- Bottom line (again): Adding race to the equation improves within group ranking.
+
+]
+.pull-right[
+
+
+```{r, echo=FALSE, out.width = "90%", fig.align='center'}
+
+include_graphics("figs/fig2.png")
+
+```
+]
+
+---
+
+# Main takeaways
+
+- Turning algorithms blind might actually do harm.
+
+- What actually matters is the rankings within groups.
+
+- Caveat: This is a very specific setup and source of bias.
+
+---
+class: .title-slide-final, center, inverse, middle
+
+# `slides |> end()`
+
+[<i class="fa fa-github"></i> Source code](https://github.com/ml4econ/lecture-notes-2025/tree/master/12-prediction-policy)  
+
+
+
+---
+# Selected references
+
+
+Angwin, Julia, Jeff Larson, Surya Mattu, and Lauren Kirchner. 2016. “Machine Bias.” _ProPublica_, May 23. [https://www.propublica.org/article/machine-bias-risk-assessments-in-criminal-sentencing.](https://www.propublica.org/article/machine-bias-risk-assesments-in-criminal-sentencing.)
+
+Athey, S. (2018). The Impact of Machine Learning on Economics. 
+
+Athey, S., & Wager, S. (2018). Efficient Policy Learning.
+
+Kleinberg, B. J., Ludwig, J., Mullainathan, S., & Obermeyer, Z. (2015). Prediction Policy Problems. _American Economic Review: Papers & Proceedings_, 105(5), 491–495.
+
+Kleinberg, B. J., Ludwig, J., Mullainathan, S., & Rambachan, A. (2018). Algorithmic Fairness. _American Economic Review: Papers & Proceedings_, 108, 22–27.
+
+---
+# Selected references
+
+
+Kleinberg, J., Lakkaraju, H., Leskovec, J., Ludwig, J., & Mullainathan, S. (2018). Human Descisions and Machine Predictions. _Quarterly Journal of Economics_, 133(1), 237–293.
+
+Kleinberg, J., Mullainathan, S., & Raghavan, M. (2017). Inherent Trade-Offs in the Fair Determination of Risk Scores. _Proceedings of the 8th Conference on Innovation in Theoretical Computer Science_, 43, 1–23.
+
+Mullainathan, S., & Spiess, J. (2017). Machine Learning: An Applied Econometric Approach. _Journal of Economic Perspectives_, 31(2), 87–106.
+

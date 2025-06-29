@@ -121,9 +121,12 @@ In this lecture, we will explore how to use text data in machine learning, inclu
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/11-text-mining/11-text-mining.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/11-text-mining/11-text-mining.pdf)
 
-12. Deep Learning
+### Part IV: Prediction Policy Problems
 
-13. Large Language Models
+12. Prediction Policy Problems
+In this lecture, we will discuss the challenges of prediction policy problems and algorithmic fairness.
+   [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/12-prediction-policy/12-pred-policy.html) |
+   [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/12-prediction-policy/12-pred-policy.pdf)
 
 ## Projects
 

@@ -2,9 +2,9 @@
 title: "Text Mining Hands-on"
 author: 
   name: Itamar Caspi
-  affiliation: Hebrew University, ML for Economists, 2023
+  affiliation: Hebrew University, ML for Economists, 2025
   email: caspi.itamar@gmail.com
-date: "June 18, 2023 (updated: `r Sys.Date()`)"
+date: "June 22, 2025 (updated: `r Sys.Date()`)"
 output: 
   html_document:
     theme: flatly
@@ -31,8 +31,6 @@ knitr::opts_chunk$set(
 Okay, let's install, if necessary, the packages we need. We will load each package as we proceed.
 
 ```{r packages, message=FALSE}
-if (!require("pacman")) install.packages("pacman")
-
 library(quanteda)
 library(quanteda.textstats)
 library(readtext)
@@ -44,7 +42,8 @@ library(glmnet)
 library(stm)
 library(text2vec)
 library(knitr)
-
+library(broom)
+library(LDAvis)
 ```
 
 
@@ -58,12 +57,11 @@ theme_set(theme_light())
 
 our data is stored in pdf files. We will read them with the help of the `readtext` package
 ```{r}
-boi_raw_text <- 
-  readtext(
-    "11-text-mining/docs/*",
-    docvarsfrom = "filenames",
-    docvarsname = c("year", "month"),
-    dvsep = "-"
+boi_raw_text <- readtext(
+  here::here("11-text-mining", "docs", "*.pdf"),   # <-- absolute path/glob
+  docvarsfrom = "filenames",
+  docvarnames = c("year", "month"),
+  dvsep = "-"
 )
 ```
  
@@ -109,15 +107,13 @@ month_names <-
 
 
 ```{r }
-boi_dfm_clean <- 
-  boi_courpus_seg_docs %>% 
-  tokens(remove_punct = TRUE, remove_numbers = TRUE) |>
-  dfm_remove(stopwords("english")) |> 
-  dfm_wordstem() |> 
-  dfm_trim(
-    min_termfreq = 10,
-    min_docfreq = 2
-  )
+boi_dfm_clean <-  
+  boi_courpus_seg_docs %>%                                       # corpus
+  tokens(remove_punct = TRUE, remove_numbers = TRUE) %>%         # tokens
+  tokens_remove(stopwords("english")) %>%                        # remove stopwords
+  tokens_wordstem() %>%                                          # stem tokens
+  dfm() %>%                                                      # now make the dfm
+  dfm_trim(min_termfreq = 10, min_docfreq = 2)                   # trim
 ```
 
 Lets have a look at our DTM's top features
@@ -143,25 +139,23 @@ multiwords <- c(
 )
 
 boi_dfm_multi <- 
-  tokens(boi_courpus_seg_docs) %>% 
-  tokens_compound(pattern = phrase(multiwords)) %>% 
-  dfm(
-    remove = c(stopwords(("english")), month_names, "percent"),
-    remove_numbers = TRUE,
-    remove_punct = TRUE,
-    stem = FALSE,
-    verbose = TRUE
-  ) %>% 
-  dfm_trim(
-    min_termfreq = 10,
-    min_docfreq = 2
-  )
+  boi_courpus_seg_docs %>%                               # corpus
+  tokens(remove_punct = TRUE,
+         remove_numbers = TRUE) %>%
+  tokens_compound(phrase(multiwords)) %>%                # glue multi-words
+  tokens_remove(c(stopwords("english"),
+                  month_names, "percent")) %>%           # toss stopwords etc.
+  tokens_wordstem() %>%                                  # <- stem *here*
+  dfm() %>%                                              # build the dfm
+  dfm_trim(min_termfreq = 10, min_docfreq = 2)           # trim
 ```
 
 
 ## Most frequent words
 
 Here we take a glimpse over the most frequent words. We also apply the tf-idf method in order to take into account word frequency between documents.
+
+TF-IDF (Term Frequency–Inverse Document Frequency) is a way to figure out how important a word is in a document compared to a bunch of other documents. It gives higher scores to words that appear a lot in one document but not in many others—helping highlight what makes each document unique.
 
 ```{r}
 topfeatures(boi_dfm_multi, 20)
@@ -179,7 +173,7 @@ Here we'll preform a naive lasso estimation. Specifically, we will use our DTM t
 Read the data
 ```{r}
 df_chng <- read_excel(
-  path = "11-text-mining/data/rate-changes.xlsx",
+  here::here("11-text-mining", "data", "rate-changes.xlsx"),
   sheet = "data"
 )
 
@@ -201,17 +195,19 @@ model <- cv.glmnet(
 
 Tidy the results using `broom`
 ```{r }
-coefs <- model$glmnet.fit %>%
-  tidy() %>%
-  filter(step == 10)
-  # filter(lambda == model$lambda.1se) 
+coefs <- 
+  model$glmnet.fit %>%                        # the fitted path
+  tidy(return_zeros = FALSE) %>%              # broom tidier → tibble
+  filter(lambda == model$lambda.1se) %>%      # pick the 1-SE model
+  arrange(desc(abs(estimate)))   
 ```
 Unfortunately, setting lambda at its optimal level, leaves us with zero features...
 
+
 Plot coefficients
 ```{r }
-devtools::install_github("https://github.com/dgrtwo/drlib")
-library(drlib)
+#devtools::install_github("https://github.com/dgrtwo/drlib")
+#library(drlib)
 
 coefs %>%
   group_by(estimate > 0) %>%
@@ -238,6 +234,8 @@ topic_model <- stm(boi_dfm_multi, K = 4, verbose = FALSE)
 
 
 Tidy the results and plot $\beta$
+
+This plot is the lexical fingerprint of each latent theme. Topic 1 is the bureaucratic meeting, Topic 2 the data recap, Topic 3 the decision justification, Topic 4 the forward-looking statement. Those labels plus the γ distributions give you a clean, hard classification of the corpus—and a solid springboard for downstream analysis or policy dashboards.
 ```{r}
 td_beta <- tidy(topic_model)
 
