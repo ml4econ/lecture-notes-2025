@@ -58,7 +58,7 @@ bib <- ReadBib("refs/refs.bib", check = FALSE)
 
 - [Prediction Policy Problems](#prediction)
 
-- [Prediction and Fairness](#fairness)
+- [Algorithmic Fairness](#fairness)
 
 
 
@@ -339,7 +339,7 @@ incentives, fairness, and welfare metrics must guide implementation.
 class: title-slide-section-blue, center, middle
 name: fairness
 
-# Prediction and Fairness
+# Algorithmic Fairness
 
 
 ---
