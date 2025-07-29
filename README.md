@@ -100,7 +100,7 @@ In this lecture, we will cover decision trees and random forests, including thei
 ### Part II: Causal Inference and ML
 
 8. *Causal Inference*
-In this lecture, we will רקהןק' the principles of causal inference, including the potential outcome and DAGs framework
+In this lecture, we will review the principles of causal inference, including the potential outcome and DAGs framework
    [HTML](https://raw.githack.com/ml4econ/lecture-notes-2025/master/08-causal-inference/08-causal-inference.html) |
    [PDF](https://raw.githack.com/ml4econ/lecture-notes-2025/master/08-causal-inference/08-causal-inference.pdf)  
    
